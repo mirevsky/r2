@@ -279,7 +279,7 @@ case $1 in
         result=${result//\"/}
         echo "${JIRA_SYS_URL}browse/$result"
 
-        move_jira_ticket=$(r2_read "Do you want to move the ticket away from the backlog [y/N]?")
+        move_jira_ticket=$(r2_read "Do you want to move the ticket from the backlog [y/N]?")
         if [ $move_jira_ticket == "Y" ] || [ $move_jira_ticket == "y" ];then
           position=$(r2_read "Specify the status value[number]:")
           r2_jira_move_ticket $result $position
