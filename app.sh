@@ -419,6 +419,7 @@ case $1 in
       ;;
 
     openai)
+      r2_msg_info "Note:OpenAI default url is https://api.openai.com"
       OPENAI_URL=$(r2_read "OpenAI URL:")
       OPENAI_API_KEY=$(r2_read "OpenAI API Key:")
       r2_append_var "OPENAI_URL=$OPENAI_URL"
