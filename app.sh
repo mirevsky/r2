@@ -459,6 +459,8 @@ case $1 in
        r2_msg "r2 setup openai"
        r2_msg "r2 setup jira"
        r2_msg "r2 setup jq"
+       r2_msg "r2 setup devtools"
+       r2_msg "r2 setup social"
        ;;
      *)
        r2_logo

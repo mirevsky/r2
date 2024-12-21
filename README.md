@@ -41,3 +41,20 @@
 | r2 release <project-name> <jira-project-code> <version> |
 +---------------------------------------------------------+
 ```
+
+INSTALLATION STEPS
+
+```text
+chmod +x ./install.sh
+./install.sh
+source ~/.bashrc
+
+r2 help
+r2 help apps
+
+r2 setup git
+r2 setup homebrew
+r2 setup jq
+r2 setup jira
+r2 setup openai
+```
