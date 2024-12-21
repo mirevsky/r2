@@ -291,8 +291,8 @@ case $1 in
     ;;
 
   run)
-    if [ -d "$R2_WORKSPACE/$2" ]; then
-      cd "$R2_WORKSPACE/$2"
+    if [ -d "$R2_WORKSPACE$2" ]; then
+      cd "$R2_WORKSPACE$2"
       docker-compose run "$3"
     else
       docker run $(docker ps -aqf "name=^$2")
@@ -305,8 +305,8 @@ case $1 in
         docker restart $(docker ps -q)
         ;;
       *)
-        if [ -d "$R2_WORKSPACE/$2" ]; then
-          cd "$R2_WORKSPACE/$2"
+        if [ -d "$R2_WORKSPACE$2" ]; then
+          cd "$R2_WORKSPACE$2"
           docker-compose restart "$3"
         else
           docker restart $(docker ps -aqf "name=^$2")
@@ -329,8 +329,8 @@ case $1 in
         docker kill $(docker ps -q)
         ;;
       *)
-        if [ -d "$R2_WORKSPACE/$2" ]; then
-          cd "$R2_WORKSPACE/$2"
+        if [ -d "$R2_WORKSPACE$2" ]; then
+          cd "$R2_WORKSPACE$2"
           docker-compose stop "$3"
         else
           docker kill $(docker ps -aqf "name=^$2")
@@ -342,7 +342,7 @@ case $1 in
     docker ps
     ;;
   update)
-    if [ -d "$R2_WORKSPACE/r2" ]; then
+    if [ -d "$R2_WORKSPACEr2" ]; then
       cd $R2_WORKSPACE
       git pull
       cp app.sh $R2_WORKSPACE/../.r2.sh
