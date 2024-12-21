@@ -278,6 +278,12 @@ case $1 in
         result=$(r2_jira_create_ticket $project_jira_code Story "Release-$version" "$(printf "$template_description" "$openai_summary" "$jira_prs")")
         result=${result//\"/}
         echo "${JIRA_SYS_URL}browse/$result"
+
+        move_jira_ticket=$(r2_read "Do you want to move the ticket away from the backlog [y/N]?")
+        if [ $move_jira_ticket == "Y" ] || [ $move_jira_ticket == "y" ];then
+          position=$(r2_read "Specify the status value[number]:")
+          r2_jira_move_ticket $result $position
+        fi
       fi
 
       confirm=$(r2_read "Do you want to create release pull request [y/N]?")
