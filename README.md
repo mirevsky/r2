@@ -63,3 +63,6 @@ r2 setup jira
 r2 setup openai
 ```
 Note: Clone the project into your Workspace so you can manage multiple projects.
+
+Let me know if you like the tool and you want to see more automation...
+email: lorandite@proton.me , please add subject: R2-D2 CLI improvement
