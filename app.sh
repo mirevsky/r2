@@ -256,12 +256,12 @@ case $1 in
       confirm=$(r2_read "Do you want to create release ticket [y/N]?")
 
       template_description='[
-      {"type": "paragraph","content": [{"type": "text","text": "Comment: %s"}]},
+      {"type": "paragraph","content": [{"type": "text","text": "Summary: %s"}]},
       {"type": "paragraph", "content": [ %s ]}]'
 
       if [ $confirm == "Y" ] || [ $confirm == "y" ];then
         project_jira_code=$(r2_read "Set JIRA project code:")
-        r2_jira_create_ticket $project_jira_code Story "Release-$version" "$(printf "$template_description" "$version" "$jira_prs")"
+        r2_jira_create_ticket $project_jira_code Story "Release-$version" "$(printf "$template_description" "$(r2 d2 sum "$jira_description")" "$jira_prs")"
       fi
 
       confirm=$(r2_read "Do you want to create release pull request [y/N]?")
