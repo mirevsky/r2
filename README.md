@@ -1,4 +1,4 @@
-R2 CLI (Command Line Interface)
+## R2 CLI (Command Line Interface)
 
 Unlock the ultimate developer toolkit with R2 CLI! Seamlessly integrating Docker, JIRA, and GIT, R2 CLI transforms your command line experience into a powerhouse of productivity. Simplify your workflow, streamline project management, and boost your version control efficiency—all in one robust interface. R2 CLI is designed to empower developers like you to achieve more with less hassle. Ready to revolutionize your development process? Try R2 CLI today and elevate your command line capabilities to new heights!
 
@@ -46,7 +46,7 @@ Unlock the ultimate developer toolkit with R2 CLI! Seamlessly integrating Docker
 +---------------------------------------------------------+
 ```
 
-INSTALLATION STEPS
+## Installation steps
 
 ```text
 chmod +x ./install.sh
@@ -63,6 +63,23 @@ r2 setup jira
 r2 setup openai
 ```
 Note: Clone the project into your Workspace so you can manage multiple projects.
+
+### Non-Interactive Mode
+
+This setting can be utilized in GitHub Actions to automate the release process, ensuring the script successfully processes by requiring a configuration file.
+
+```text
+r2 release <project-name> <jira-project-code> <version> --non-interactive
+```
+
+Example of `~/.r2_config` file.
+```text
+export R2_DESCRIPTION="Release description is here!"
+export R2_PROJECT_JIRA_CODE="R2D2"
+export R2_MOVE_JIRA_TICKET=Y # state is Y or N
+export R2_POSITION=100
+export R2_RELEASE_CONFIRM='N' # state is Y or N
+```
 
 Let me know if you like the tool and you want to see more automation...
 email: lorandite@proton.me , please add subject: R2-D2 CLI improvement

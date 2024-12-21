@@ -209,6 +209,18 @@ case $1 in
       project_jira_code=$3
       version=$4
 
+      if [ -n "$5" ] && [ "$5" == "--non-interactive" ];then
+          if [ -f ~/.r2_config ];then
+            R2_CONFIRM_RELEASE_TICKET='Y'
+            R2_RELEASE_CONFIRM=''
+            R2_MOVE_JIRA_TICKET=''
+            source ~/.r2_config
+          else
+            r2_msg_error "File ~/.r2_config does not exist!"
+            exit
+          fi
+      fi
+
       if [ ! -d $R2_WORKSPACE$2 ];then
         r2_msg_error "Directory does not exist!"
       fi
@@ -244,8 +256,11 @@ case $1 in
 
       list_branches=$(git log $version...$main_branch --decorate="full" | egrep -o "($project_jira_code)[- 0-9]*" )
 
-      description=$(r2_read "Enter description for the release:")
-
+      if [ -n "$R2_DESCRIPTION" ];then
+        description=$R2_DESCRIPTION
+      else
+        description=$(r2_read "Enter description for the release:")
+      fi
       r2_jira_create_release $project_jira_code $version $description
 
       for pr in $list_branches; do
@@ -256,8 +271,11 @@ case $1 in
       done
 
       jira_prs=${jira_prs%,}
-
-      confirm=$(r2_read "Do you want to create release ticket [y/N]?")
+      if [ "$R2_CONFIRM_RELEASE_TICKET" == "Y" ];then
+        confirm=$R2_CONFIRM_RELEASE_TICKET
+      else
+        confirm=$(r2_read "Do you want to create release ticket [y/N]?")
+      fi
 
       template_description='[
       {"type": "paragraph","content": [{"type": "text","text": "Summary: %s"}]},
@@ -265,7 +283,12 @@ case $1 in
       ]'
 
       if [ $confirm == "Y" ] || [ $confirm == "y" ];then
-        project_jira_code=$(r2_read "Set JIRA project code:")
+        if [ -n "$R2_PROJECT_JIRA_CODE" ];then
+          project_jira_code=$R2_PROJECT_JIRA_CODE
+        else
+          project_jira_code=$(r2_read "Set JIRA project code:")
+        fi
+
         prompt=$(printf 'Summarize the following text:%s' "$jira_description")
         prompt=${prompt//\"/}
 
@@ -279,14 +302,26 @@ case $1 in
         result=${result//\"/}
         echo "${JIRA_SYS_URL}browse/$result"
 
-        move_jira_ticket=$(r2_read "Do you want to move the ticket from the backlog [y/N]?")
+        if [ "$R2_MOVE_JIRA_TICKET" == "Y" ];then
+          move_jira_ticket=$R2_MOVE_JIRA_TICKET
+        else
+          move_jira_ticket=$(r2_read "Do you want to move the ticket from the backlog [y/N]?")
+        fi
         if [ $move_jira_ticket == "Y" ] || [ $move_jira_ticket == "y" ];then
-          position=$(r2_read "Specify the status value[number]:")
+          if [ -n "$R2_POSITION" ];then
+            position=$R2_POSITION
+          else
+            position=$(r2_read "Specify the status value[number]:")
+          fi
           r2_jira_move_ticket $result $position
         fi
       fi
 
-      confirm=$(r2_read "Do you want to create release pull request [y/N]?")
+      if [ -n "$R2_RELEASE_CONFIRM" ];then
+        confirm=$R2_RELEASE_CONFIRM
+      else
+        confirm=$(r2_read "Do you want to create release pull request [y/N]?")
+      fi
       if [ $confirm == "Y" ] || [ $confirm == "y" ];then
         git pull refs/heads/$version
         git commit -m "$version"
