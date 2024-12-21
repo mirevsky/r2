@@ -58,3 +58,4 @@ r2 setup jq
 r2 setup jira
 r2 setup openai
 ```
+Note: Clone the project into your Workspace so you can manage multiple projects.
