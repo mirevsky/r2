@@ -93,8 +93,10 @@ r2_append_var(){
 r2_openai_call(){
   data=$1
   template='{ "model": "gpt-3.5-turbo", "messages": [{"role": "user", "content": "%s"}], "temperature": 0.7}'
-  result=$(curl -s "$OPENAI_URL/v1/chat/completions" -H "Content-Type: application/json" -H "Authorization: Bearer $OPENAI_API_KEY" -d "$(printf "$template" "$data")" )
-  echo $result | jq ".choices" | jq '.[]' | jq ".message" | jq ".content"
+  if [ -n "$data" ];then
+    result=$(curl -s "$OPENAI_URL/v1/chat/completions" -H "Content-Type: application/json" -H "Authorization: Bearer $OPENAI_API_KEY" -d "$(printf "$template" "$data")" )
+    echo $result | jq ".choices" | jq '.[]' | jq ".message" | jq ".content"
+  fi
 }
 
 r2_jira_call(){
@@ -253,6 +255,8 @@ case $1 in
         jira_description+="$description_data"
       done
 
+      jira_prs=${jira_prs%,}
+
       confirm=$(r2_read "Do you want to create release ticket [y/N]?")
 
       template_description='[
@@ -261,7 +265,15 @@ case $1 in
 
       if [ $confirm == "Y" ] || [ $confirm == "y" ];then
         project_jira_code=$(r2_read "Set JIRA project code:")
-        openai_summary=$(r2_openai_call "Summarize the following text: $jira_description")
+        prompt=$(printf 'Summarize the following text:%s' "$jira_description")
+        prompt=${prompt//\"/}
+
+        template='{ "model": "gpt-3.5-turbo", "messages": [{"role": "user", "content": "%s"}], "temperature": 0.7}'
+        if [ -n "$prompt" ];then
+          openai_summary=$(curl -s "$OPENAI_URL/v1/chat/completions" -H "Content-Type: application/json" -H "Authorization: Bearer $OPENAI_API_KEY" -d "$(printf "$template" "$prompt")" )
+          openai_summary=$(echo $openai_summary | jq ".choices" | jq '.[]' | jq ".message" | jq ".content")
+          openai_summary=${openai_summary//\"/}
+        fi
         r2_jira_create_ticket $project_jira_code Story "Release-$version" "$(printf "$template_description" "$openai_summary" "$jira_prs")"
       fi
 
