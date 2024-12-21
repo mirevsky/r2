@@ -76,9 +76,9 @@ Example of `~/.r2_config` file.
 ```text
 export R2_DESCRIPTION="Release description is here!"
 export R2_PROJECT_JIRA_CODE="R2D2"
-export R2_MOVE_JIRA_TICKET=Y # state is Y or empty
+export R2_MOVE_JIRA_TICKET=Y # state is Y or N
 export R2_POSITION=100
-export R2_RELEASE_CONFIRM='' # state is Y or empty
+export R2_RELEASE_CONFIRM='N' # state is Y or N
 ```
 
 Let me know if you like the tool and you want to see more automation...

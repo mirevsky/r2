@@ -271,7 +271,7 @@ case $1 in
       done
 
       jira_prs=${jira_prs%,}
-      if [ -n "$R2_CONFIRM_RELEASE_TICKET" ];then
+      if [ "$R2_CONFIRM_RELEASE_TICKET" == "Y" ];then
         confirm=$R2_CONFIRM_RELEASE_TICKET
       else
         confirm=$(r2_read "Do you want to create release ticket [y/N]?")
@@ -302,7 +302,7 @@ case $1 in
         result=${result//\"/}
         echo "${JIRA_SYS_URL}browse/$result"
 
-        if [ -n "$R2_MOVE_JIRA_TICKET" ];then
+        if [ "$R2_MOVE_JIRA_TICKET" == "Y" ];then
           move_jira_ticket=$R2_MOVE_JIRA_TICKET
         else
           move_jira_ticket=$(r2_read "Do you want to move the ticket from the backlog [y/N]?")
