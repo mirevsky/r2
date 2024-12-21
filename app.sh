@@ -209,11 +209,11 @@ case $1 in
       project_jira_code=$3
       version=$5
 
-      if [ ! -d $R2_WORKSPACE/$2 ];then
+      if [ ! -d $R2_WORKSPACE$2 ];then
         r2_msg_error "Directory does not exist!"
       fi
 
-      cd $R2_WORKSPACE/$2
+      cd $R2_WORKSPACE$2
 
       git fetch --all --quiet
 
