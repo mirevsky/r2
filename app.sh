@@ -128,7 +128,6 @@ r2_jira_create_ticket(){
      }
     }
   }'
-
   result=$(r2_jira_call POST "rest/api/2/issue" "$(printf "$template" "$project" "$summary" "$description" "$issuetype")")
   echo $result | jq ".key"
 }
