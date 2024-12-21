@@ -239,7 +239,7 @@ case $1 in
           git pull
       fi
 
-      list_branches=$(git log $version...$main_branch | egrep "^(?i)($project_jira_code)[- 0-9](?-i).*" )
+      list_branches=$(git log $version...$main_branch | egrep "($project_jira_code)[- 0-9]*" )
 
       description=$(r2_read "Enter description for the release:")
 
