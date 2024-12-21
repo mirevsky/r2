@@ -248,7 +248,7 @@ case $1 in
 
       for pr in $list_branches[@]; do
         r2_jira_tag_release $pr $version
-        jira_prs+='{"type": "inlineCard","attrs":{"url":"'$JIRA_SYS_URL'/browse/'$pr'"}},'
+        jira_prs+='{"type": "inlineCard","attrs":{"url":"'$JIRA_SYS_URL'browse/'$pr'"}},'
         description_data=$(r2_jira_get_description $pr)
         jira_description+="$description_data"
       done
