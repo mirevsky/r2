@@ -72,5 +72,14 @@ This setting can be utilized in GitHub Actions to automate the release process, 
 r2 release <project-name> <jira-project-code> <version> --non-interactive
 ```
 
+Example of `~/.r2_config` file.
+```text
+export R2_DESCRIPTION="Release description is here!"
+export R2_PROJECT_JIRA_CODE="R2D2"
+export R2_MOVE_JIRA_TICKET=Y # state is Y or empty
+export R2_POSITION=100
+export R2_RELEASE_CONFIRM='' # state is Y or empty
+```
+
 Let me know if you like the tool and you want to see more automation...
 email: lorandite@proton.me , please add subject: R2-D2 CLI improvement

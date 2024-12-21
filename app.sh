@@ -211,6 +211,9 @@ case $1 in
 
       if [ -n "$5" ] && [ "$5" == "--non-interactive" ];then
           if [ -f ~/.r2_config ];then
+            R2_CONFIRM_RELEASE_TICKET='Y'
+            R2_RELEASE_CONFIRM=''
+            R2_MOVE_JIRA_TICKET=''
             source ~/.r2_config
           else
             r2_msg_error "File ~/.r2_config does not exist!"
