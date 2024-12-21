@@ -207,7 +207,7 @@ case $1 in
 
       project_name=$2
       project_jira_code=$3
-      version=$5
+      version=$4
 
       if [ ! -d $R2_WORKSPACE$2 ];then
         r2_msg_error "Directory does not exist!"
@@ -217,7 +217,7 @@ case $1 in
 
       git fetch --all --quiet
 
-      exists=`git show-ref refs/heads/$version`
+      exists=$(git show-ref refs/heads/$version)
       if [ -n "$exists" ]; then
           git checkout $version
           git pull
@@ -227,13 +227,13 @@ case $1 in
       fi
 
       main_branch='main'
-      exists=`git show-ref refs/heads/main`
+      exists=$(git show-ref refs/heads/main)
       if [ -n "$exists" ]; then
           git checkout main
           git pull
       fi
 
-      exists=`git show-ref refs/heads/master`
+      exists=$(git show-ref refs/heads/master)
       if [ -n "$exists" ]; then
           main_branch='master'
           git checkout master
@@ -261,7 +261,7 @@ case $1 in
 
       if [ $confirm == "Y" ] || [ $confirm == "y" ];then
         project_jira_code=$(r2_read "Set JIRA project code:")
-        r2_jira_create_ticket $project_jira_code Story "Release-$version" "$(printf "$template_description" "$(r2 d2 sum "$jira_description")" "$jira_prs")"
+        r2_jira_create_ticket $project_jira_code Story "Release-$version" "$(printf "$template_description" "$(r2_openai_call "Summarize the following text: $jira_description")" "$jira_prs")"
       fi
 
       confirm=$(r2_read "Do you want to create release pull request [y/N]?")
