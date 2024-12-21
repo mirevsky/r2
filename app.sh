@@ -276,6 +276,7 @@ case $1 in
           openai_summary=${openai_summary//\"/}
         fi
         result=$(r2_jira_create_ticket $project_jira_code Story "Release-$version" "$(printf "$template_description" "$openai_summary" "$jira_prs")")
+        result=${result//\"/}
         echo "${JIRA_SYS_URL}browse/$result"
       fi
 
