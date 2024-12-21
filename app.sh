@@ -200,20 +200,20 @@ case $1 in
     ;;
 
   release)
-      if [ -z $3 ] || [ -z $4 ] || [ -z $5 ];then
+      if [ -z $2 ] || [ -z $3 ] || [ -z $4 ];then
           r2_msg_error "Additional parameters required!"
           exit
       fi
 
-      project_name=$3
-      project_jira_code=$4
+      project_name=$2
+      project_jira_code=$3
       version=$5
 
-      if [ ! -d $R2_WORKSPACE/$3 ];then
+      if [ ! -d $R2_WORKSPACE/$2 ];then
         r2_msg_error "Directory does not exist!"
       fi
 
-      cd $R2_WORKSPACE/$3
+      cd $R2_WORKSPACE/$2
 
       git fetch --all --quiet
 
