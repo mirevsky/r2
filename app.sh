@@ -130,7 +130,7 @@ r2_jira_create_ticket(){
      }
     }
   }'
-  result=$(r2_jira_call POST "rest/api/2/issue" "$(printf "$template" "$project" "$summary" "$description" "$issuetype")")
+  result=$(r2_jira_call POST "rest/api/3/issue" "$(printf "$template" "$project" "$summary" "$description" "$issuetype")")
   echo $result | jq ".key"
 }
 
@@ -261,7 +261,8 @@ case $1 in
 
       template_description='[
       {"type": "paragraph","content": [{"type": "text","text": "Summary: %s"}]},
-      {"type": "paragraph", "content": [ %s ]}]'
+      {"type": "paragraph", "content": [ %s ]}
+      ]'
 
       if [ $confirm == "Y" ] || [ $confirm == "y" ];then
         project_jira_code=$(r2_read "Set JIRA project code:")
@@ -274,7 +275,8 @@ case $1 in
           openai_summary=$(echo $openai_summary | jq ".choices" | jq '.[]' | jq ".message" | jq ".content")
           openai_summary=${openai_summary//\"/}
         fi
-        r2_jira_create_ticket $project_jira_code Story "Release-$version" "$(printf "$template_description" "$openai_summary" "$jira_prs")"
+        result=$(r2_jira_create_ticket $project_jira_code Story "Release-$version" "$(printf "$template_description" "$openai_summary" "$jira_prs")")
+        echo "${JIRA_SYS_URL}browse/$result"
       fi
 
       confirm=$(r2_read "Do you want to create release pull request [y/N]?")
