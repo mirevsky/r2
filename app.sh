@@ -240,13 +240,13 @@ case $1 in
 
       git checkout $version
 
-      list_branches=$(git log $version...$main_branch | egrep "($project_jira_code)[- 0-9]*" )
+      list_branches=$(git log $version...$main_branch --decorate="full" | egrep -o "($project_jira_code)[- 0-9]*" )
 
       description=$(r2_read "Enter description for the release:")
 
       r2_jira_create_release $project_jira_code $version $description
 
-      for pr in $list_branches[@]; do
+      for pr in $list_branches; do
         r2_jira_tag_release $pr $version
         jira_prs+='{"type": "inlineCard","attrs":{"url":"'$JIRA_SYS_URL'browse/'$pr'"}},'
         description_data=$(r2_jira_get_description $pr)
