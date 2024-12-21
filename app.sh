@@ -216,6 +216,7 @@ case $1 in
             source ~/.r2_config
           else
             r2_msg_error "File ~/.r2_config does not exist!"
+            exit
           fi
       fi
 
