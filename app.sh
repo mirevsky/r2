@@ -94,7 +94,7 @@ r2_openai_call(){
   data=$1
   template='{ "model": "gpt-3.5-turbo", "messages": [{"role": "user", "content": "%s"}], "temperature": 0.7}'
   result=$(curl -s "$OPENAI_URL/v1/chat/completions" -H "Content-Type: application/json" -H "Authorization: Bearer $OPENAI_API_KEY" -d "$(printf "$template" "$data")" )
-  echo $result
+  echo $result | jq ".choices" | jq '.[]' | jq ".message" | jq ".content"
 }
 
 r2_jira_call(){
@@ -261,7 +261,8 @@ case $1 in
 
       if [ $confirm == "Y" ] || [ $confirm == "y" ];then
         project_jira_code=$(r2_read "Set JIRA project code:")
-        r2_jira_create_ticket $project_jira_code Story "Release-$version" "$(printf "$template_description" "$(r2_openai_call "Summarize the following text: $jira_description")" "$jira_prs")"
+        openai_summary=$(r2_openai_call "Summarize the following text: $jira_description")
+        r2_jira_create_ticket $project_jira_code Story "Release-$version" "$(printf "$template_description" "$openai_summary" "$jira_prs")"
       fi
 
       confirm=$(r2_read "Do you want to create release pull request [y/N]?")
