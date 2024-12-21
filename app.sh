@@ -208,11 +208,9 @@ case $1 in
       project_name=$2
       project_jira_code=$3
       version=$4
-      non_interactive=false
 
       if [ -n "$5" ] && [ "$5" == "--non-interactive" ];then
           if [ -f ~/.r2_config ];then
-            non_interactive=true
             source ~/.r2_config
           else
             r2_msg_error "File ~/.r2_config does not exist!"
