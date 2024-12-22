@@ -400,10 +400,10 @@ case $1 in
     docker ps
     ;;
   update)
-    if [ -d "$R2_WORKSPACE/r2" ]; then
-      cd $R2_WORKSPACE/r2
+    if [ -d $R2_WORKSPACE"r2" ]; then
+      cd $R2_WORKSPACE"r2"
       git pull
-      cp app.sh $R2_WORKSPACE/../.r2.sh
+      cp app.sh $R2_WORKSPACE../.r2.sh
       r2_reload
     fi
     ;;
