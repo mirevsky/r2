@@ -446,10 +446,10 @@ case $1 in
       r2_append_var "JIRA_API_KEY=$JIRA_API_KEY"
 
       r2_msg_info "Homebrew is needed..."
-      r2 setup homebrew
+      /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
       confirm=$(r2_read "Have you installed homebrew? [y/N]:")
       if [ "$confirm" == "Y" ] || [ "$confirm" = "y" ]; then
-        r2 setup jq
+        brew install jq
       fi
       ;;
 
