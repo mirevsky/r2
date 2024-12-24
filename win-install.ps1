@@ -40,4 +40,7 @@ Set-Alias -Name r2 -Value '$R2_WORKSPACE\.r2.ps1'
         # Reload profile
         . $PROFILE_PATH
     }
+    doskey r2=$R2_WORKSPACE\.r2.ps1
+    reg add "HKCU\Software\Microsoft\Command Processor" /v Autorun /d "doskey /r2=$R2_WORKSPACE\.r2.ps1" /f
+    reg query "HKCU\Software\Microsoft\Command Processor" /v Autorun
 }

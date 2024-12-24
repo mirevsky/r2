@@ -1,3 +1,13 @@
+param (
+    [string]$command,
+    [string]$arg1,
+    [string]$arg2,
+    [string]$arg3,
+    [string]$arg4,
+    [string]$arg5,
+    [string]$arg6
+)
+
 function r2_logo {
     Write-Host "                       .--:::::::.                "
     Write-Host "                     --..::::.   :-:              "
@@ -43,30 +53,6 @@ function r2_commands_list {
     Write-Host "+---------------------------------------------------------+"
     Write-Host "| r2 release <project-name> <jira-project-code> <version> |"
     Write-Host "+---------------------------------------------------------+"
-}
-
-function r2_reload {
-    if (Test-Path -Path "$HOME/.zshrc") {
-        . "$HOME/.zshrc"
-    }
-
-    if (Test-Path -Path "$HOME/.bashrc") {
-        . "$HOME/.bashrc"
-    }
-}
-
-function r2_append_var {
-    param (
-        [string]$v
-    )
-    if (Test-Path -Path "$HOME/.zshrc") {
-        Add-Content -Path "$HOME/.zshrc" -Value "export $v"
-    }
-
-    if (Test-Path -Path "$HOME/.bashrc") {
-        Add-Content -Path "$HOME/.bashrc" -Value "export $v"
-    }
-    r2_reload
 }
 
 function r2_openai_call {
@@ -202,159 +188,9 @@ function r2_msg_error {
     Write-Host "$message"
 }
 
-# Main logic
-param (
-    [string]$command,
-    [string]$arg1,
-    [string]$arg2,
-    [string]$arg3,
-    [string]$arg4,
-    [string]$arg5,
-    [string]$arg6
-)
-
 switch ($command) {
     "add" {
         git clone "$GIT_SYS_URL$arg1"
-    }
-
-    "release" {
-        if (-not $arg1 -or -not $arg2 -or -not $arg3) {
-            r2_msg_error "Additional parameters required!"
-            exit
-        }
-
-        $project_name = $arg1
-        $project_jira_code = $arg2
-        $version = $arg3
-
-        if ($arg4 -eq "--non-interactive") {
-            if (Test-Path -Path "$HOME/.r2_config") {
-                . "$HOME/.r2_config"
-                $R2_CONFIRM_RELEASE_TICKET = 'Y'
-                $R2_RELEASE_CONFIRM = ''
-                $R2_MOVE_JIRA_TICKET = ''
-            } else {
-                r2_msg_error "File ~/.r2_config does not exist!"
-                exit
-            }
-        }
-
-        if (-not (Test-Path -Path "$R2_WORKSPACE$arg1")) {
-            r2_msg_error "Directory does not exist!"
-        }
-
-        Set-Location "$R2_WORKSPACE$arg1"
-
-        git fetch --all --quiet
-
-        $exists = git show-ref refs/heads/$version
-        if ($exists) {
-            git checkout $version
-            git pull
-        } else {
-            r2_msg_error "Release version $version does not exist!"
-            exit
-        }
-
-        $main_branch = 'main'
-        $exists = git show-ref refs/heads/main
-        if ($exists) {
-            git checkout main
-            git pull
-        }
-
-        $exists = git show-ref refs/heads/master
-        if ($exists) {
-            $main_branch = 'master'
-            git checkout master
-            git pull
-        }
-
-        git checkout $version
-
-        $list_branches = git log "$version...$main_branch" --decorate="full" | Select-String -Pattern "($project_jira_code)[- 0-9]*" | ForEach-Object { $_.Matches.Value }
-
-        if ($R2_DESCRIPTION) {
-            $description = $R2_DESCRIPTION
-        } else {
-            $description = r2_read "Enter description for the release:"
-        }
-        r2_jira_create_release $project_jira_code $version $description
-
-        $jira_prs = ""
-        $jira_description = ""
-
-        foreach ($pr in $list_branches) {
-            r2_jira_tag_release $pr $version
-            $jira_prs += '{"type": "inlineCard","attrs":{"url":"'+$JIRA_SYS_URL+'browse/'+$pr+'"}},'
-            $description_data = r2_jira_get_description $pr
-            $jira_description += $description_data
-        }
-
-        $jira_prs = $jira_prs.TrimEnd(',')
-
-        if ($R2_CONFIRM_RELEASE_TICKET -eq "Y") {
-            $confirm = $R2_CONFIRM_RELEASE_TICKET
-        } else {
-            $confirm = r2_read "Do you want to create release ticket [y/N]?"
-        }
-
-        $template_description = @"
-[
-{"type": "paragraph","content": [{"type": "text","text": "Summary: %s"}]},
-{"type": "paragraph", "content": [ %s ]}
-]
-"@
-
-        if ($confirm -eq "Y" -or $confirm -eq "y") {
-            if ($R2_PROJECT_JIRA_CODE) {
-                $project_jira_code = $R2_PROJECT_JIRA_CODE
-            } else {
-                $project_jira_code = r2_read "Set JIRA project code:"
-            }
-
-            $prompt = [System.String]::Format('Summarize the following text:%s', $jira_description)
-            $prompt = $prompt.Replace('"', '')
-
-            $template = '{ "model": "gpt-3.5-turbo", "messages": [{"role": "user", "content": "%s"}], "temperature": 0.7}'
-            if ($prompt) {
-                $openai_summary = Invoke-RestMethod -Uri "$OPENAI_URL/v1/chat/completions" -Headers @{ "Content-Type" = "application/json"; "Authorization" = "Bearer $OPENAI_API_KEY" } -Body ([System.String]::Format($template, $prompt)) -Method Post
-                $openai_summary = $openai_summary.choices | ForEach-Object { $_.message.content }
-                $openai_summary = $openai_summary.Replace('"', '')
-            }
-
-            $result = r2_jira_create_ticket $project_jira_code "Story" "Release-$version" ([System.String]::Format($template_description, $openai_summary, $jira_prs))
-            $result = $result.Replace('"', '')
-            Write-Host "${JIRA_SYS_URL}browse/$result"
-
-            if ($R2_MOVE_JIRA_TICKET -eq "Y") {
-                $move_jira_ticket = $R2_MOVE_JIRA_TICKET
-            } else {
-                $move_jira_ticket = r2_read "Do you want to move the ticket from the backlog [y/N]?"
-            }
-
-            if ($move_jira_ticket -eq "Y" -or $move_jira_ticket -eq "y") {
-                if ($R2_POSITION) {
-                    $position = $R2_POSITION
-                } else {
-                    $position = r2_read "Specify the status value[number]:"
-                }
-                r2_jira_move_ticket $result $position
-            }
-        }
-
-        if ($R2_RELEASE_CONFIRM) {
-            $confirm = $R2_RELEASE_CONFIRM
-        } else {
-            $confirm = r2_read "Do you want to create release pull request [y/N]?"
-        }
-
-        if ($confirm -eq "Y" -or $confirm -eq "y") {
-            git pull refs/heads/$version
-            git commit -m "$version"
-            git push
-        }
     }
 
     "delete" {
@@ -434,7 +270,6 @@ switch ($command) {
             Set-Location "$R2_WORKSPACE/r2"
             git pull
             Copy-Item -Path "app.ps1" -Destination "$R2_WORKSPACE/../.r2.ps1"
-            r2_reload
         }
     }
 
@@ -454,6 +289,9 @@ switch ($command) {
     "setup" {
         switch ($arg1) {
             "git" {
+                choco install git.install
+                choco install jq
+
                 $confirm = r2_read "Do you want to generate ssh key? [y/N]:"
                 if ($confirm -eq "Y" -or $confirm -eq "y") {
                     $ssh_type = r2_read "Select type[ed25519,rsa]:"
@@ -464,74 +302,50 @@ switch ($command) {
                 }
 
                 $GIT_SYS_URL = r2_read "GIT Url:"
-                r2_append_var "GIT_SYS_URL=$GIT_SYS_URL"
             }
 
             "jira" {
                 $JIRA_SYS_URL = r2_read "JIRA Url:"
                 $JIRA_SYS_EMAIL = r2_read "JIRA User email:"
                 $JIRA_API_KEY = r2_read "JIRA API Key:"
-                r2_append_var "JIRA_SYS_URL=$JIRA_SYS_URL"
-                r2_append_var "JIRA_SYS_EMAIL=$JIRA_SYS_EMAIL"
-                r2_append_var "JIRA_API_KEY=$JIRA_API_KEY"
-
-                r2_msg_info "Homebrew is needed..."
-                Invoke-Expression "/bin/bash -c `"(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)`""
-                $confirm = r2_read "Have you installed homebrew? [y/N]:"
-                if ($confirm -eq "Y" -or $confirm -eq "y") {
-                    brew install jq
-                }
             }
 
             "openai" {
                 r2_msg_info "Note: OpenAI default url is https://api.openai.com"
                 $OPENAI_URL = r2_read "OpenAI URL:"
                 $OPENAI_API_KEY = r2_read "OpenAI API Key:"
-                r2_append_var "OPENAI_URL=$OPENAI_URL"
-                r2_append_var "OPENAI_API_KEY=$OPENAI_API_KEY"
             }
 
             "nvm" {
-                Invoke-Expression "curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.1/install.sh | bash"
-                $confirm = r2_read "Did you update the NVM environment variable? [y/N]:"
-                if ($confirm -eq "Y" -or $confirm -eq "y") {
-                    r2_reload
-                }
+                choco install nvm
             }
 
             "pyenv" {
-                Invoke-Expression "curl https://pyenv.run | bash"
-                $confirm = r2_read "Did you update the PYENV environment variable? [y/N]:"
-                if ($confirm -eq "Y" -or $confirm -eq "y") {
-                    r2_reload
-                }
+                choco install pyenv-win
             }
 
-            "homebrew" {
-                Invoke-Expression "/bin/bash -c `"(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)`""
+            "choco" {
+                Get-Help Set-ExecutionPolicy
+                Set-ExecutionPolicy AllSigned
+                Set-ExecutionPolicy Bypass -Scope Process -Force; [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.ServicePointManager]::SecurityProtocol -bor 3072; iex ((New-Object System.Net.WebClient).DownloadString('https://community.chocolatey.org/install.ps1'))
             }
 
             "go" {
-                brew install go
+                choco install go
             }
 
             "devtools" {
-                brew install --cask pycharm
-                brew install --cask intellij-idea-ce
-                brew install --cask beekeeper-studio
-                brew install --cask postman
-                brew install docker-compose
+                choco install pycharm
+                choco install vscode
+                choco install beekeeper-studio.install
             }
 
             "social" {
-                brew install --cask signal
-                brew install --cask telegram
-                brew install --cask vivaldi
-                brew install --cask mailspring
+                choco install signal
             }
 
             "jq" {
-                brew install jq
+                choco install jq
             }
         }
     }
@@ -542,7 +356,7 @@ switch ($command) {
                 r2_logo
                 r2_msg "r2 setup nvm"
                 r2_msg "r2 setup pyenv"
-                r2_msg "r2 setup homebrew"
+                r2_msg "r2 setup choco"
                 r2_msg "r2 setup go"
                 r2_msg "r2 setup openai"
                 r2_msg "r2 setup jira"
