@@ -83,3 +83,16 @@ export R2_RELEASE_CONFIRM='N' # state is Y or N
 
 Let me know if you like the tool and you want to see more automation...
 email: lorandite@proton.me , please add subject: R2-D2 CLI improvement
+
+---
+## Windows installation
+
+Run powershell as Administrator and Run `win-install.ps1`. This script will setup doskey `r2` and create `.r2.ps1` file in your main project directory.
+Then run `r2 setup choco`. This will install chocolatey (https://chocolatey.org/) if you encounter any issue please follow the instruction from the chocolatey website.
+After successful installation run `r2 setup git` , make sure you've enabled OpenSSH Client.
+Make sure you follow the next steps:
+```text
+r2 setup jq
+r2 setup jira
+r2 setup openai
+```
