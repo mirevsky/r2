@@ -215,12 +215,12 @@ switch ($command) {
             }
         }
 
-        if (-not (Test-Path -Path "$R2_WORKSPACE$arg1")) {
+        if (-not (Test-Path -Path "$R2_WORKSPACE\$arg1")) {
             r2_msg_error "Directory does not exist!"
             exit
         }
 
-        Set-Location -Path "$R2_WORKSPACE$arg1"
+        Set-Location -Path "$R2_WORKSPACE\$arg1"
         git fetch --all --quiet
 
         $exists = git show-ref "refs/heads/$version"
@@ -351,8 +351,8 @@ switch ($command) {
     }
 
     "run" {
-        if (Test-Path -Path "$R2_WORKSPACE$arg1") {
-            Set-Location "$R2_WORKSPACE$arg1"
+        if (Test-Path -Path "$R2_WORKSPACE\$arg1") {
+            Set-Location "$R2_WORKSPACE\$arg1"
             docker-compose run "$arg2"
         } else {
             docker run $(docker ps -aqf "name=^$arg1")
@@ -365,8 +365,8 @@ switch ($command) {
                 docker restart $(docker ps -q)
             }
             default {
-                if (Test-Path -Path "$R2_WORKSPACE$arg1") {
-                    Set-Location "$R2_WORKSPACE$arg1"
+                if (Test-Path -Path "$R2_WORKSPACE\$arg1") {
+                    Set-Location "$R2_WORKSPACE\$arg1"
                     docker-compose restart "$arg2"
                 } else {
                     docker restart $(docker ps -aqf "name=^$arg1")
@@ -389,8 +389,8 @@ switch ($command) {
                 docker kill $(docker ps -q)
             }
             default {
-                if (Test-Path -Path "$R2_WORKSPACE$arg1") {
-                    Set-Location "$R2_WORKSPACE$arg1"
+                if (Test-Path -Path "$R2_WORKSPACE\$arg1") {
+                    Set-Location "$R2_WORKSPACE\$arg1"
                     docker-compose stop "$arg2"
                 } else {
                     docker kill $(docker ps -aqf "name=^$arg1")
