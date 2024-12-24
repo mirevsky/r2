@@ -193,6 +193,144 @@ switch ($command) {
         git clone "$GIT_SYS_URL$arg1"
     }
 
+    "release" {
+        if (-not $arg1 -or -not $arg2 -or -not $arg3) {
+            r2_msg_error "Additional parameters required!"
+            exit
+        }
+
+        $project_name = $arg1
+        $project_jira_code = $arg2
+        $version = $arg3
+
+        if ($arg4 -and $arg4 -eq "--non-interactive") {
+            if (Test-Path -Path "~/.r2_config") {
+                . "~/.r2_config"
+                $R2_CONFIRM_RELEASE_TICKET = 'Y'
+                $R2_RELEASE_CONFIRM = ''
+                $R2_MOVE_JIRA_TICKET = ''
+            } else {
+                r2_msg_error "File ~/.r2_config does not exist!"
+                exit
+            }
+        }
+
+        if (-not (Test-Path -Path "$R2_WORKSPACE$arg1")) {
+            r2_msg_error "Directory does not exist!"
+            exit
+        }
+
+        Set-Location -Path "$R2_WORKSPACE$arg1"
+        git fetch --all --quiet
+
+        $exists = git show-ref "refs/heads/$version"
+        if ($exists) {
+            git checkout $version
+            git pull
+        } else {
+            r2_msg_error "Release version $version does not exist!"
+            exit
+        }
+
+        $main_branch = 'main'
+        $exists = git show-ref "refs/heads/main"
+        if ($exists) {
+            git checkout main
+            git pull
+        }
+
+        $exists = git show-ref "refs/heads/master"
+        if ($exists) {
+            $main_branch = 'master'
+            git checkout master
+            git pull
+        }
+
+        git checkout $version
+
+        $list_branches = git log "$version...$main_branch" --decorate="full" | Select-String -Pattern "($project_jira_code)[- 0-9]*"
+
+        if ($R2_DESCRIPTION) {
+            $description = $R2_DESCRIPTION
+        } else {
+            $description = r2_read "Enter description for the release:"
+        }
+        r2_jira_create_release -project $project_jira_code -name $version -description $description
+
+        $jira_prs = ""
+        $jira_description = ""
+        foreach ($pr in $list_branches) {
+            r2_jira_tag_release -ticket $pr -tag $version
+            $jira_prs += '{"type": "inlineCard","attrs":{"url":"'+$JIRA_SYS_URL+'browse/'+$pr+'"}},'
+            $description_data = r2_jira_get_description -pr $pr
+            $jira_description += $description_data
+        }
+
+        $jira_prs = $jira_prs.TrimEnd(',')
+
+        if ($R2_CONFIRM_RELEASE_TICKET -eq "Y") {
+            $confirm = $R2_CONFIRM_RELEASE_TICKET
+        } else {
+            $confirm = r2_read "Do you want to create release ticket [y/N]?"
+        }
+
+        $template_description = @"
+        [
+        {"type": "paragraph","content": [{"type": "text","text": "Summary: %s"}]},
+        {"type": "paragraph", "content": [ %s ]}
+        ]
+"@
+
+        if ($confirm -eq "Y" -or $confirm -eq "y") {
+            if ($R2_PROJECT_JIRA_CODE) {
+                $project_jira_code = $R2_PROJECT_JIRA_CODE
+            } else {
+                $project_jira_code = r2_read "Set JIRA project code:"
+            }
+
+            $prompt = 'Summarize the following text:' + $jira_description
+            $prompt = $prompt.Replace('"', '')
+
+            $template = '{ "model": "gpt-3.5-turbo", "messages": [{"role": "user", "content": "%s"}], "temperature": 0.7}'
+            if ($prompt) {
+                $openai_summary = Invoke-RestMethod -Uri "$OPENAI_URL/v1/chat/completions" -Headers @{
+                    "Content-Type" = "application/json"
+                    "Authorization" = "Bearer $OPENAI_API_KEY"
+                } -Body ($template -f $prompt) -Method Post
+                $openai_summary = $openai_summary.choices | ForEach-Object { $_.message.content }
+                $openai_summary = $openai_summary.Replace('"', '')
+            }
+            $result = r2_jira_create_ticket -project $project_jira_code -issuetype "Story" -summary "Release-$version" -description ($template_description -f $openai_summary, $jira_prs)
+            $result = $result.Replace('"', '')
+            Write-Host "${JIRA_SYS_URL}browse/$result"
+
+            if ($R2_MOVE_JIRA_TICKET -eq "Y") {
+                $move_jira_ticket = $R2_MOVE_JIRA_TICKET
+            } else {
+                $move_jira_ticket = r2_read "Do you want to move the ticket from the backlog [y/N]?"
+            }
+            if ($move_jira_ticket -eq "Y" -or $move_jira_ticket -eq "y") {
+                if ($R2_POSITION) {
+                    $position = $R2_POSITION
+                } else {
+                    $position = r2_read "Specify the status value[number]:"
+                }
+                r2_jira_move_ticket -ticket $result -transition $position
+            }
+        }
+
+        if ($R2_RELEASE_CONFIRM) {
+            $confirm = $R2_RELEASE_CONFIRM
+        } else {
+            $confirm = r2_read "Do you want to create release pull request [y/N]?"
+        }
+        if ($confirm -eq "Y" -or $confirm -eq "y") {
+            git pull "refs/heads/$version"
+            git commit -m "$version"
+            git push
+        }
+    }
+
     "delete" {
         switch ($arg1) {
             "all" {
