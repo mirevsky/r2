@@ -8,7 +8,8 @@ param (
     [string]$arg6
 )
 
-function r2_logo {
+function r2_logo
+{
     Write-Host "                       .--:::::::.                "
     Write-Host "                     --..::::.   :-:              "
     Write-Host "                    =.       .::::.:=             "
@@ -34,7 +35,8 @@ function r2_logo {
     Write-Host "                        =::::::::::::=            "
 }
 
-function r2_commands_list {
+function r2_commands_list
+{
     Write-Host "+---------------------------------------------------------+"
     Write-Host "| R2 CLI - Command Line Interface                         |"
     Write-Host "+---------------------------------------------------------+"
@@ -55,19 +57,22 @@ function r2_commands_list {
     Write-Host "+---------------------------------------------------------+"
 }
 
-function r2_append_var {
+function r2_append_var
+{
     param(
         [string]$v
     )
-    $Env:PATH += ";"+$v
+    $Env:PATH += ";" + $v
 }
 
-function r2_openai_call {
+function r2_openai_call
+{
     param (
         [string]$data
     )
-    $template = '{ "model": "gpt-3.5-turbo", "messages": [{"role": "user", "content": "'+$data+'"}], "temperature": 0.7}'
-    if ($data) {
+    $template = '{ "model": "gpt-3.5-turbo", "messages": [{"role": "user", "content": "' + $data + '"}], "temperature": 0.7}'
+    if ($data)
+    {
         $pathArray = $Env:Path -split ';'
         $variable = $pathArray -match 'OPENAI_URL'
         $value = $variable -split '='
@@ -83,7 +88,8 @@ function r2_openai_call {
     }
 }
 
-function r2_jira_call {
+function r2_jira_call
+{
     param (
         [string]$type,
         [string]$url,
@@ -91,23 +97,38 @@ function r2_jira_call {
     )
     $pathArray = $Env:Path -split ';'
     $variable = $pathArray -match 'JIRA_SYS_URL'
-    $value = $variable -split '='
+    $value = $variable -split '=', 2
     $JIRA_SYS_URL = $value[1]
 
     $pathArray = $Env:Path -split ';'
     $variable = $pathArray -match 'JIRA_SYS_EMAIL'
-    $value = $variable -split '='
+    $value = $variable -split '=', 2
     $JIRA_SYS_EMAIL = $value[1]
 
     $pathArray = $Env:Path -split ';'
     $variable = $pathArray -match 'JIRA_API_KEY'
-    $value = $variable -split '='
+    $value = $variable -split '=', 2
     $JIRA_API_KEY = $value[1]
-    $result = Invoke-RestMethod -Uri "$JIRA_SYS_URL$url" -Headers @{ "Accept" = "application/json"; "Content-Type" = "application/json" } -Credential (New-Object System.Management.Automation.PSCredential("$JIRA_SYS_EMAIL", (ConvertTo-SecureString "$JIRA_API_KEY" -AsPlainText -Force))) -Body $data -Method $type
+    $JIRA_API_KEY = $JIRA_API_KEY.Replace('"', '')
+
+    # Create a credential object
+    $credentials = "${JIRA_SYS_EMAIL}:${JIRA_API_KEY}"
+    $encodedCredentials = [Convert]::ToBase64String([Text.Encoding]::ASCII.GetBytes($credentials))
+
+    $headers = @{
+        Accept = "application/json";
+        "Content-Type" = "application/json";
+        Authorization = "Basic $encodedCredentials"
+    }
+
+    $data = (ConvertFrom-Json $data) | ConvertTo-Json -Compress
+
+    $result = Invoke-RestMethod -Uri $JIRA_SYS_URL$url -Headers $headers -Body "$data" -Method $type
     return $result
 }
 
-function r2_jira_create_ticket {
+function r2_jira_create_ticket
+{
     param (
         [string]$project,
         [string]$issuetype,
@@ -118,79 +139,86 @@ function r2_jira_create_ticket {
 {
   "fields": {
      "project": {
-        "key": "%s"
+        "key": "$project"
      },
-     "summary": "%s",
+     "summary": "$summary",
      "description": {
        "type": "doc",
        "version": 1,
-       "content": %s
+       "content": $description
       },
      "issuetype": {
-        "name": "%s"
+        "name": "$issuetype"
      }
     }
 }
 "@
-    $result = r2_jira_call -type "POST" -url "rest/api/3/issue" -data ([System.String]::Format($template, $project, $summary, $description, $issuetype))
+    $result = r2_jira_call -type "POST" -url "rest/api/3/issue" -data $template
     return $result.key
 }
 
-function r2_jira_get_description {
+function r2_jira_get_description
+{
     param (
         [string]$pr
     )
-    $description = r2_jira_call -type "GET" -url "rest/api/2/issue/$pr?fields=description"
+    $description = r2_jira_call -type "GET" -url "rest/api/2/issue/"+$pr+"?fields=description"
     return $description.fields.description
 }
 
-function r2_jira_create_release {
+function r2_jira_create_release
+{
     param (
         [string]$project,
         [string]$name,
         [string]$description
     )
+    $date = (Get-Date -Format "yyyy-MM-dd")
     $template = @"
 {
    "archived": false,
-   "description": "%s",
-   "name": "%s",
-   "project": "%s",
-   "releaseDate": "%s",
+   "description": "$description",
+   "name": "$name",
+   "project": "$project",
+   "releaseDate": "$date",
    "released": false
 }
 "@
-    r2_jira_call -type "POST" -url "rest/api/3/version" -data ([System.String]::Format($template, $description, $name, $project, (Get-Date -Format "yyyy-MM-dd")))
+    r2_jira_call -type "POST" -url "rest/api/3/version" -data $template
 }
 
-function r2_jira_tag_release {
+function r2_jira_tag_release
+{
     param (
         [string]$ticket,
         [string]$tag
     )
+
     $template = @"
 {
     "update": {
       "fixVersions": [{
-          "add": {"name": "%s"}
+          "add": {"name": "$tag"}
         }
       ]
     }
 }
 "@
-    r2_jira_call -type "POST" -url "rest/api/2/issue/$ticket" -data ([System.String]::Format($template, $tag))
+    r2_jira_call -type "POST" -url "rest/api/2/issue/$ticket" -data $template
 }
 
-function r2_jira_move_ticket {
+function r2_jira_move_ticket
+{
     param (
         [string]$ticket,
         [string]$transition
     )
-    $template = '{"transition":{"id":%s}}'
-    r2_jira_call -type "POST" -url "rest/api/3/issue/$ticket/transitions" -data ([System.String]::Format($template, $transition))
+    $template = '{"transition":{"id":' + $transition + '}}'
+    r2_jira_call -type "POST" -url "rest/api/3/issue/$ticket/transitions" -data $template
 }
 
-function r2_read {
+function r2_read
+{
     param (
         [string]$prompt
     )
@@ -198,34 +226,39 @@ function r2_read {
     return $set_read
 }
 
-function r2_msg {
+function r2_msg
+{
     param (
         [string]$message
     )
     Write-Host $message
 }
 
-function r2_msg_info {
+function r2_msg_info
+{
     param (
         [string]$message
     )
     Write-Host "$message"
 }
 
-function r2_msg_error {
+function r2_msg_error
+{
     param (
         [string]$message
     )
     Write-Host "$message"
 }
 
-switch ($command) {
+switch ($command)
+{
     "add" {
         git clone "$GIT_SYS_URL$arg1"
     }
 
     "release" {
-        if (-not $arg1 -or -not $arg2 -or -not $arg3) {
+        if (-not $arg1 -or -not $arg2 -or -not $arg3)
+        {
             r2_msg_error "Additional parameters required!"
             exit
         }
@@ -234,19 +267,24 @@ switch ($command) {
         $project_jira_code = $arg2
         $version = $arg3
 
-        if ($arg4 -and $arg4 -eq "--non-interactive") {
-            if (Test-Path -Path "~/.r2_config") {
+        if ($arg4 -and $arg4 -eq "--non-interactive")
+        {
+            if (Test-Path -Path "~/.r2_config")
+            {
                 . "~/.r2_config"
                 $R2_CONFIRM_RELEASE_TICKET = 'Y'
                 $R2_RELEASE_CONFIRM = ''
                 $R2_MOVE_JIRA_TICKET = ''
-            } else {
+            }
+            else
+            {
                 r2_msg_error "File ~/.r2_config does not exist!"
                 exit
             }
         }
 
-        if (-not (Test-Path -Path "$R2_WORKSPACE\$arg1")) {
+        if (-not (Test-Path -Path "$R2_WORKSPACE\$arg1"))
+        {
             r2_msg_error "Directory does not exist!"
             exit
         }
@@ -255,23 +293,28 @@ switch ($command) {
         git fetch --all --quiet
 
         $exists = git show-ref "refs/heads/$version"
-        if ($exists) {
+        if ($exists)
+        {
             git checkout $version
             git pull
-        } else {
+        }
+        else
+        {
             r2_msg_error "Release version $version does not exist!"
             exit
         }
 
         $main_branch = 'main'
         $exists = git show-ref "refs/heads/main"
-        if ($exists) {
+        if ($exists)
+        {
             git checkout main
             git pull
         }
 
         $exists = git show-ref "refs/heads/master"
-        if ($exists) {
+        if ($exists)
+        {
             $main_branch = 'master'
             git checkout master
             git pull
@@ -279,83 +322,95 @@ switch ($command) {
 
         git checkout $version
 
-        $list_branches = git log "$version...$main_branch" --decorate="full" | Select-String -Pattern "($project_jira_code)[- 0-9]*"
+        $list_branches = git log "$version...$main_branch" --decorate="full" | Select-String -Pattern "($project_jira_code)[- 0-9]*" -AllMatches | ForEach-Object { $_.Matches } | ForEach-Object { $_.Value }
 
-        if ($R2_DESCRIPTION) {
+        if ($R2_DESCRIPTION)
+        {
             $description = $R2_DESCRIPTION
-        } else {
+        }
+        else
+        {
             $description = r2_read "Enter description for the release:"
         }
-        r2_jira_create_release -project $project_jira_code -name $version -description $description
+        r2_jira_create_release $project_jira_code $version $description
 
         $jira_prs = ""
         $jira_description = ""
-        foreach ($pr in $list_branches) {
-            r2_jira_tag_release -ticket $pr -tag $version
-            $jira_prs += '{"type": "inlineCard","attrs":{"url":"'+$JIRA_SYS_URL+'browse/'+$pr+'"}},'
-            $description_data = r2_jira_get_description -pr $pr
+        foreach ($pr in $list_branches)
+        {
+            r2_jira_tag_release $pr $version
+            $jira_prs += '{"type": "inlineCard","attrs":{"url":"' + $JIRA_SYS_URL + 'browse/' + $pr + '"}},'
+            $description_data = r2_jira_get_description $pr
             $jira_description += $description_data
         }
 
         $jira_prs = $jira_prs.TrimEnd(',')
 
-        if ($R2_CONFIRM_RELEASE_TICKET -eq "Y") {
+        if ($R2_CONFIRM_RELEASE_TICKET -eq "Y")
+        {
             $confirm = $R2_CONFIRM_RELEASE_TICKET
-        } else {
+        }
+        else
+        {
             $confirm = r2_read "Do you want to create release ticket [y/N]?"
         }
 
-        $template_description = @"
-        [
-        {"type": "paragraph","content": [{"type": "text","text": "Summary: %s"}]},
-        {"type": "paragraph", "content": [ %s ]}
-        ]
-"@
-
-        if ($confirm -eq "Y" -or $confirm -eq "y") {
-            if ($R2_PROJECT_JIRA_CODE) {
+        if ($confirm -eq "Y" -or $confirm -eq "y")
+        {
+            if ($R2_PROJECT_JIRA_CODE)
+            {
                 $project_jira_code = $R2_PROJECT_JIRA_CODE
-            } else {
+            }
+            else
+            {
                 $project_jira_code = r2_read "Set JIRA project code:"
             }
 
             $prompt = 'Summarize the following text:' + $jira_description
             $prompt = $prompt.Replace('"', '')
+            $openai_summary = r2_openai_call "$prompt"
+            $template_description = @"
+        [
+        {"type": "paragraph","content": [{"type": "text","text": "Summary: $openai_summary"}]},
+        {"type": "paragraph", "content": [ $jira_prs ]}
+        ]
+"@
 
-            $template = '{ "model": "gpt-3.5-turbo", "messages": [{"role": "user", "content": "%s"}], "temperature": 0.7}'
-            if ($prompt) {
-                $openai_summary = Invoke-RestMethod -Uri "$OPENAI_URL/v1/chat/completions" -Headers @{
-                    "Content-Type" = "application/json"
-                    "Authorization" = "Bearer $OPENAI_API_KEY"
-                } -Body ($template -f $prompt) -Method Post
-                $openai_summary = $openai_summary.choices | ForEach-Object { $_.message.content }
-                $openai_summary = $openai_summary.Replace('"', '')
-            }
-            $result = r2_jira_create_ticket -project $project_jira_code -issuetype "Story" -summary "Release-$version" -description ($template_description -f $openai_summary, $jira_prs)
-            $result = $result.Replace('"', '')
+            $result = r2_jira_create_ticket $project_jira_code "Story" "Release-$version"  $template_description
             Write-Host "${JIRA_SYS_URL}browse/$result"
 
-            if ($R2_MOVE_JIRA_TICKET -eq "Y") {
+            if ($R2_MOVE_JIRA_TICKET -eq "Y")
+            {
                 $move_jira_ticket = $R2_MOVE_JIRA_TICKET
-            } else {
+            }
+            else
+            {
                 $move_jira_ticket = r2_read "Do you want to move the ticket from the backlog [y/N]?"
             }
-            if ($move_jira_ticket -eq "Y" -or $move_jira_ticket -eq "y") {
-                if ($R2_POSITION) {
+            if ($move_jira_ticket -eq "Y" -or $move_jira_ticket -eq "y")
+            {
+                if ($R2_POSITION)
+                {
                     $position = $R2_POSITION
-                } else {
+                }
+                else
+                {
                     $position = r2_read "Specify the status value[number]:"
                 }
                 r2_jira_move_ticket -ticket $result -transition $position
             }
         }
 
-        if ($R2_RELEASE_CONFIRM) {
+        if ($R2_RELEASE_CONFIRM)
+        {
             $confirm = $R2_RELEASE_CONFIRM
-        } else {
+        }
+        else
+        {
             $confirm = r2_read "Do you want to create release pull request [y/N]?"
         }
-        if ($confirm -eq "Y" -or $confirm -eq "y") {
+        if ($confirm -eq "Y" -or $confirm -eq "y")
+        {
             git pull "refs/heads/$version"
             git commit -m "$version"
             git push
@@ -363,16 +418,18 @@ switch ($command) {
     }
 
     "delete" {
-        switch ($arg1) {
+        switch ($arg1)
+        {
             "all" {
                 r2_msg "IMPORTANT: This action will prune all images and volumes!"
                 $confirm = r2_read "Are you sure you want to clear your services? [y/N]:"
 
-                if ($confirm -eq "Y" -or $confirm -eq "y") {
-                    docker kill $(docker ps -q)
+                if ($confirm -eq "Y" -or $confirm -eq "y")
+                {
+                    docker kill $( docker ps -q )
                     docker system prune
                     docker system prune --volumes
-                    docker rmi $(docker images -a -q)
+                    docker rmi $( docker images -a -q )
                     r2_msg_info "All containers have been completely removed..."
                     docker ps
                     r2_msg_info "Run r2 run <project-name>"
@@ -382,49 +439,60 @@ switch ($command) {
     }
 
     "run" {
-        if (Test-Path -Path "$R2_WORKSPACE\$arg1") {
+        if (Test-Path -Path "$R2_WORKSPACE\$arg1")
+        {
             Set-Location "$R2_WORKSPACE\$arg1"
             docker-compose run "$arg2"
-        } else {
-            docker run $(docker ps -aqf "name=^$arg1")
+        }
+        else
+        {
+            docker run $( docker ps -aqf "name=^$arg1" )
         }
     }
 
     "restart" {
-        switch ($arg1) {
+        switch ($arg1)
+        {
             "all" {
-                docker restart $(docker ps -q)
+                docker restart $( docker ps -q )
             }
             default {
-                if (Test-Path -Path "$R2_WORKSPACE\$arg1") {
+                if (Test-Path -Path "$R2_WORKSPACE\$arg1")
+                {
                     Set-Location "$R2_WORKSPACE\$arg1"
                     docker-compose restart "$arg2"
-                } else {
-                    docker restart $(docker ps -aqf "name=^$arg1")
+                }
+                else
+                {
+                    docker restart $( docker ps -aqf "name=^$arg1" )
                 }
             }
         }
     }
 
     "ssh" {
-        docker exec -it $(docker ps -aqf "name=^$arg1") /bin/bash
+        docker exec -it $( docker ps -aqf "name=^$arg1" ) /bin/bash
     }
 
     "exec" {
-        docker exec -it $(docker ps -aqf "name=^$arg1") /bin/bash -c "$arg2 $arg3 $arg4 $arg5 $arg6"
+        docker exec -it $( docker ps -aqf "name=^$arg1" ) /bin/bash -c "$arg2 $arg3 $arg4 $arg5 $arg6"
     }
 
     "stop" {
-        switch ($arg1) {
+        switch ($arg1)
+        {
             "all" {
-                docker kill $(docker ps -q)
+                docker kill $( docker ps -q )
             }
             default {
-                if (Test-Path -Path "$R2_WORKSPACE\$arg1") {
+                if (Test-Path -Path "$R2_WORKSPACE\$arg1")
+                {
                     Set-Location "$R2_WORKSPACE\$arg1"
                     docker-compose stop "$arg2"
-                } else {
-                    docker kill $(docker ps -aqf "name=^$arg1")
+                }
+                else
+                {
+                    docker kill $( docker ps -aqf "name=^$arg1" )
                 }
             }
         }
@@ -435,7 +503,8 @@ switch ($command) {
     }
 
     "update" {
-        if (Test-Path -Path "$R2_WORKSPACE/r2") {
+        if (Test-Path -Path "$R2_WORKSPACE/r2")
+        {
             Set-Location "$R2_WORKSPACE/r2"
             git pull
             Copy-Item -Path "app.ps1" -Destination "$R2_WORKSPACE/../.r2.ps1"
@@ -443,7 +512,8 @@ switch ($command) {
     }
 
     "d2" {
-        switch ($arg1) {
+        switch ($arg1)
+        {
             "sum" {
                 $result = r2_openai_call "Summarize the following text: $arg2"
                 Write-Host $result
@@ -456,13 +526,15 @@ switch ($command) {
     }
 
     "setup" {
-        switch ($arg1) {
+        switch ($arg1)
+        {
             "git" {
                 choco install git.install
                 choco install jq
 
                 $confirm = r2_read "Do you want to generate ssh key? [y/N]:"
-                if ($confirm -eq "Y" -or $confirm -eq "y") {
+                if ($confirm -eq "Y" -or $confirm -eq "y")
+                {
                     $ssh_type = r2_read "Select type[ed25519,rsa]:"
                     $ssh_email = r2_read "Set user email:"
                     ssh-keygen -t $ssh_type -C "$ssh_email"
@@ -526,7 +598,8 @@ switch ($command) {
     }
 
     "help" {
-        switch ($arg1) {
+        switch ($arg1)
+        {
             "apps" {
                 r2_logo
                 r2_msg "r2 setup nvm"
