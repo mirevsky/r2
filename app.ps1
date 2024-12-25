@@ -66,9 +66,19 @@ function r2_openai_call {
     param (
         [string]$data
     )
-    $template = '{ "model": "gpt-3.5-turbo", "messages": [{"role": "user", "content": "%s"}], "temperature": 0.7}'
+    $template = '{ "model": "gpt-3.5-turbo", "messages": [{"role": "user", "content": "'+$data+'"}], "temperature": 0.7}'
     if ($data) {
-        $result = Invoke-RestMethod -Uri "$OPENAI_URL/v1/chat/completions" -Headers @{ "Content-Type" = "application/json"; "Authorization" = "Bearer $OPENAI_API_KEY" } -Body ([System.String]::Format($template, $data)) -Method Post
+        $pathArray = $Env:Path -split ';'
+        $variable = $pathArray -match 'OPENAI_URL'
+        $value = $variable -split '='
+        $OPENAI_URL = $value[1]
+
+        $pathArray = $Env:Path -split ';'
+        $variable = $pathArray -match 'OPENAI_API_KEY'
+        $value = $variable -split '='
+        $OPENAI_API_KEY = $value[1]
+
+        $result = Invoke-RestMethod -Uri "$OPENAI_URL/v1/chat/completions" -Headers @{ "Content-Type" = "application/json"; "Authorization" = "Bearer $OPENAI_API_KEY" } -Body ($template) -Method Post
         $result.choices | ForEach-Object { $_.message.content }
     }
 }
@@ -79,6 +89,20 @@ function r2_jira_call {
         [string]$url,
         [string]$data
     )
+    $pathArray = $Env:Path -split ';'
+    $variable = $pathArray -match 'JIRA_SYS_URL'
+    $value = $variable -split '='
+    $JIRA_SYS_URL = $value[1]
+
+    $pathArray = $Env:Path -split ';'
+    $variable = $pathArray -match 'JIRA_SYS_EMAIL'
+    $value = $variable -split '='
+    $JIRA_SYS_EMAIL = $value[1]
+
+    $pathArray = $Env:Path -split ';'
+    $variable = $pathArray -match 'JIRA_API_KEY'
+    $value = $variable -split '='
+    $JIRA_API_KEY = $value[1]
     $result = Invoke-RestMethod -Uri "$JIRA_SYS_URL$url" -Headers @{ "Accept" = "application/json"; "Content-Type" = "application/json" } -Credential (New-Object System.Management.Automation.PSCredential("$JIRA_SYS_EMAIL", (ConvertTo-SecureString "$JIRA_API_KEY" -AsPlainText -Force))) -Body $data -Method $type
     return $result
 }
