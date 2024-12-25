@@ -55,6 +55,13 @@ function r2_commands_list {
     Write-Host "+---------------------------------------------------------+"
 }
 
+function r2_append_var {
+    param(
+        [string]$v
+    )
+    $Env:PATH += ";"+$v
+}
+
 function r2_openai_call {
     param (
         [string]$data
@@ -440,18 +447,24 @@ switch ($command) {
                 }
 
                 $GIT_SYS_URL = r2_read "GIT Url:"
+                r2_append_var "GIT_SYS_URL=$GIT_SYS_URL"
             }
 
             "jira" {
                 $JIRA_SYS_URL = r2_read "JIRA Url:"
                 $JIRA_SYS_EMAIL = r2_read "JIRA User email:"
                 $JIRA_API_KEY = r2_read "JIRA API Key:"
+                r2_append_var "JIRA_SYS_URL=$JIRA_SYS_URL"
+                r2_append_var "JIRA_SYS_EMAIL=$JIRA_SYS_EMAIL"
+                r2_append_var "JIRA_API_KEY=$JIRA_API_KEY"
             }
 
             "openai" {
                 r2_msg_info "Note: OpenAI default url is https://api.openai.com"
                 $OPENAI_URL = r2_read "OpenAI URL:"
                 $OPENAI_API_KEY = r2_read "OpenAI API Key:"
+                r2_append_var "OPENAI_URL=$OPENAI_URL"
+                r2_append_var "OPENAI_API_KEY=$OPENAI_API_KEY"
             }
 
             "nvm" {
