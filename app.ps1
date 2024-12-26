@@ -124,7 +124,10 @@ function r2_jira_call
 
     $data = (ConvertFrom-Json $data) | ConvertTo-Json -Compress
 
-    $result = Invoke-RestMethod -Uri $JIRA_SYS_URL$url -Headers $headers -Body ($data) -Method $type
+    Write-Host "$JIRA_SYS_URL$url"
+    Write-Host $data
+
+    $result = Invoke-RestMethod -Uri "$JIRA_SYS_URL$url" -Headers $headers -Body ($data) -Method $type
     return $result
 }
 
@@ -163,7 +166,7 @@ function r2_jira_get_description
     param (
         [string]$pr
     )
-    $description = r2_jira_call -type "GET" -url "rest/api/2/issue/"+$pr+"?fields=description"
+    $description = r2_jira_call "GET" "rest/api/2/issue/"$pr"?fields=description"
     return $description.fields.description
 }
 
@@ -194,17 +197,7 @@ function r2_jira_tag_release
         [string]$ticket,
         [string]$tag
     )
-
-    $template = @"
-{
-    "update": {
-      "fixVersions": [{
-          "add": {"name": "$tag"}
-        }
-      ]
-    }
-}
-"@
+    $template = '{"update": {"fixVersions": [{"add": {"name": "'+$tag+'"}}]}}'
     r2_jira_call -type "POST" -url "rest/api/2/issue/$ticket" -data $template
 }
 
