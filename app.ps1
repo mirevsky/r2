@@ -63,6 +63,7 @@ function r2_append_var
         [string]$v
     )
     $Env:PATH += ";" + $v
+    [Environment]::SetEnvironmentVariable('PATH', $Env:PATH, [System.EnvironmentVariableTarget]::Machine)
 }
 
 function r2_openai_call
@@ -123,7 +124,7 @@ function r2_jira_call
 
     $data = (ConvertFrom-Json $data) | ConvertTo-Json -Compress
 
-    $result = Invoke-RestMethod -Uri $JIRA_SYS_URL$url -Headers $headers -Body "$data" -Method $type
+    $result = Invoke-RestMethod -Uri $JIRA_SYS_URL$url -Headers $headers -Body ($data) -Method $type
     return $result
 }
 
