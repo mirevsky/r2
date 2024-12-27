@@ -125,7 +125,10 @@ function r2_jira_call
     if ($type -eq "GET") {
         $result = Invoke-RestMethod -Uri "$JIRA_SYS_URL$url" -Headers $headers -Method $type
     }else{
-        $result = Invoke-RestMethod -Uri "$JIRA_SYS_URL$url" -Headers $headers -Body ($data) -Method $type
+        $body = @"
+$data
+"@
+        $result = Invoke-RestMethod -Uri "$JIRA_SYS_URL$url" -Headers $headers -Body $body -Method $type
     }
     return $result
 }
@@ -141,7 +144,7 @@ function r2_jira_create_ticket
     $template = @"
 {
   "fields": {
-     "project": {
+     "projec": {
         "key": "$project"
      },
      "summary": "$summary",
@@ -189,7 +192,7 @@ function r2_jira_create_release
    "released": false
 }
 "@
-    $template = (ConvertFrom-Json $template) | ConvertTo-Json -Compress
+    #$template = (ConvertFrom-Json $template) | ConvertTo-Json -Compress
     r2_jira_call -type "POST" -url "rest/api/3/version" -data $template
 }
 
@@ -209,7 +212,7 @@ function r2_jira_tag_release
 }
 "@
 
-    $template = (ConvertFrom-Json $template) | ConvertTo-Json -Compress
+    #$template = (ConvertFrom-Json $template) | ConvertTo-Json -Compress
     r2_jira_call -type "POST" -url "rest/api/2/issue/$ticket" -data $template
 }
 
