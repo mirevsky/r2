@@ -1,3 +1,5 @@
+#!/bin/bash
+
 r2_read(){
   read -r -p "$1" set_read
   echo $set_read
