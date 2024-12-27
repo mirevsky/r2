@@ -122,12 +122,11 @@ function r2_jira_call
         Authorization = "Basic $encodedCredentials"
     }
 
-    $data = (ConvertFrom-Json $data) | ConvertTo-Json -Compress
-
-    Write-Host "$JIRA_SYS_URL$url"
-    Write-Host $data
-
-    $result = Invoke-RestMethod -Uri "$JIRA_SYS_URL$url" -Headers $headers -Body ($data) -Method $type
+    if ($type -eq "GET") {
+        $result = Invoke-RestMethod -Uri "$JIRA_SYS_URL$url" -Headers $headers -Method $type
+    }else{
+        $result = Invoke-RestMethod -Uri "$JIRA_SYS_URL$url" -Headers $headers -Body ($data) -Method $type
+    }
     return $result
 }
 
@@ -157,6 +156,7 @@ function r2_jira_create_ticket
     }
 }
 "@
+    $template = (ConvertFrom-Json $template) | ConvertTo-Json -Compress
     $result = r2_jira_call -type "POST" -url "rest/api/3/issue" -data $template
     return $result.key
 }
@@ -166,7 +166,8 @@ function r2_jira_get_description
     param (
         [string]$pr
     )
-    $description = r2_jira_call "GET" "rest/api/2/issue/"$pr"?fields=description"
+    $pr = $pr.Trim()
+    $description = r2_jira_call "GET" "rest/api/2/issue/${pr}?fields=description"
     return $description.fields.description
 }
 
@@ -188,6 +189,7 @@ function r2_jira_create_release
    "released": false
 }
 "@
+    $template = (ConvertFrom-Json $template) | ConvertTo-Json -Compress
     r2_jira_call -type "POST" -url "rest/api/3/version" -data $template
 }
 
@@ -197,7 +199,17 @@ function r2_jira_tag_release
         [string]$ticket,
         [string]$tag
     )
-    $template = '{"update": {"fixVersions": [{"add": {"name": "'+$tag+'"}}]}}'
+    $template = @"
+{
+    "update": {
+        "fixVersions": [
+            "add": { "name":"$tag" }
+        ]
+    }
+}
+"@
+
+    $template = (ConvertFrom-Json $template) | ConvertTo-Json -Compress
     r2_jira_call -type "POST" -url "rest/api/2/issue/$ticket" -data $template
 }
 
