@@ -130,7 +130,7 @@ $data
 "@
         $result = Invoke-RestMethod -Uri "$JIRA_SYS_URL$url" -Headers $headers -Body $body -Method $type
     }
-    return $result
+    return $result | ConvertTo-Json
 }
 
 function r2_jira_create_ticket
@@ -161,6 +161,7 @@ function r2_jira_create_ticket
 "@
     $template = (ConvertFrom-Json $template) | ConvertTo-Json -Compress
     $result = r2_jira_call -type "POST" -url "rest/api/3/issue" -data $template
+    $result = $result | ConvertFrom-Json
     return $result.key
 }
 
@@ -171,6 +172,7 @@ function r2_jira_get_description
     )
     $pr = $pr.Trim()
     $description = r2_jira_call "GET" "rest/api/2/issue/${pr}?fields=description"
+    $description = $description | ConvertFrom-Json
     return $description.fields.description
 }
 
@@ -192,7 +194,6 @@ function r2_jira_create_release
    "released": false
 }
 "@
-    #$template = (ConvertFrom-Json $template) | ConvertTo-Json -Compress
     r2_jira_call -type "POST" -url "rest/api/3/version" -data $template
 }
 
@@ -212,7 +213,6 @@ function r2_jira_tag_release
 }
 "@
 
-    #$template = (ConvertFrom-Json $template) | ConvertTo-Json -Compress
     r2_jira_call -type "PUT" -url "rest/api/2/issue/$ticket" -data $template
 }
 
@@ -374,7 +374,6 @@ switch ($command)
             {
                 $project_jira_code = r2_read "Set JIRA project code:"
             }
-
             $prompt = 'Summarize the following text:' + $jira_description
             $prompt = $prompt.Replace('"', '')
             $openai_summary = r2_openai_call "$prompt"
@@ -386,7 +385,6 @@ switch ($command)
 "@
 
             $result = r2_jira_create_ticket $project_jira_code "Story" "Release-$version"  $template_description
-            Write-Host "${JIRA_SYS_URL}browse/$result"
 
             if ($R2_MOVE_JIRA_TICKET -eq "Y")
             {
