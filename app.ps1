@@ -213,7 +213,7 @@ function r2_jira_tag_release
 "@
 
     #$template = (ConvertFrom-Json $template) | ConvertTo-Json -Compress
-    r2_jira_call -type "POST" -url "rest/api/2/issue/$ticket" -data $template
+    r2_jira_call -type "PUT" -url "rest/api/2/issue/$ticket" -data $template
 }
 
 function r2_jira_move_ticket

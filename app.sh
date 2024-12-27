@@ -167,7 +167,7 @@ r2_jira_tag_release(){
       ]
     }
   }'
-  r2_jira_call POST "rest/api/2/issue/$ticket" "$(printf "$template" "$tag")"
+  r2_jira_call PUT "rest/api/2/issue/$ticket" "$(printf "$template" "$tag")"
 }
 
 r2_jira_move_ticket(){
