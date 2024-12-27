@@ -144,7 +144,7 @@ function r2_jira_create_ticket
     $template = @"
 {
   "fields": {
-     "projec": {
+     "project": {
         "key": "$project"
      },
      "summary": "$summary",
