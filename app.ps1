@@ -203,7 +203,7 @@ function r2_jira_tag_release
 {
     "update": {
         "fixVersions": [
-            "add": { "name":"$tag" }
+            {"add": { "name":"$tag" }}
         ]
     }
 }
