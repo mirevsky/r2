@@ -71,7 +71,16 @@ function r2_openai_call
     param (
         [string]$data
     )
-    $template = '{ "model": "gpt-3.5-turbo", "messages": [{"role": "user", "content": "' + $data + '"}], "temperature": 0.7}'
+    $template = @"
+{
+    "model": "gpt-3.5-turbo",
+    "messages": [{
+        "role": "user",
+        "content": "$data"
+    }],
+    "temperature": 0.7
+}
+"@
     if ($data)
     {
         $pathArray = $Env:Path -split ';'
@@ -84,7 +93,9 @@ function r2_openai_call
         $value = $variable -split '='
         $OPENAI_API_KEY = $value[1]
 
-        $result = Invoke-RestMethod -Uri "$OPENAI_URL/v1/chat/completions" -Headers @{ "Content-Type" = "application/json"; "Authorization" = "Bearer $OPENAI_API_KEY" } -Body ($template) -Method Post
+        $template = (ConvertFrom-Json $template) | ConvertTo-Json -Compress
+
+        $result = Invoke-RestMethod -Uri "$OPENAI_URL/v1/chat/completions" -Headers @{ "Content-Type" = "application/json"; "Authorization" = "Bearer $OPENAI_API_KEY" } -Body $template -Method Post
         $result.choices | ForEach-Object { $_.message.content }
     }
 }
@@ -159,7 +170,8 @@ function r2_jira_create_ticket
     }
 }
 "@
-    $template = (ConvertFrom-Json $template) | ConvertTo-Json -Compress
+
+    $template = $template | ConvertTo-Json | ConvertFrom-Json
     $result = r2_jira_call -type "POST" -url "rest/api/3/issue" -data $template
     $result = $result | ConvertFrom-Json
     return $result.key
@@ -272,6 +284,11 @@ switch ($command)
             exit
         }
 
+        $pathArray = $Env:Path -split ';'
+        $variable = $pathArray -match 'JIRA_SYS_URL'
+        $value = $variable -split '=', 2
+        $JIRA_SYS_URL = $value[1]
+
         $project_name = $arg1
         $project_jira_code = $arg2
         $version = $arg3
@@ -374,8 +391,11 @@ switch ($command)
             {
                 $project_jira_code = r2_read "Set JIRA project code:"
             }
-            $prompt = 'Summarize the following text:' + $jira_description
-            $prompt = $prompt.Replace('"', '')
+            $jira_description = $jira_description.Replace('"', '')
+            $prompt = @"
+Summarize the following text:$jira_description
+"@
+            $prompt = $prompt.Replace('"', '').Trim()
             $openai_summary = r2_openai_call "$prompt"
             $template_description = @"
         [
@@ -383,9 +403,8 @@ switch ($command)
         {"type": "paragraph", "content": [ $jira_prs ]}
         ]
 "@
-
             $result = r2_jira_create_ticket $project_jira_code "Story" "Release-$version"  $template_description
-
+            Write-Host $JIRA_SYS_URL + 'browse/' + $result
             if ($R2_MOVE_JIRA_TICKET -eq "Y")
             {
                 $move_jira_ticket = $R2_MOVE_JIRA_TICKET
