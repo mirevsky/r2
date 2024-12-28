@@ -349,9 +349,12 @@ case $1 in
     ;;
 
   run)
-    if [ -d "$R2_WORKSPACE$2" ]; then
+    if [ -d "$R2_WORKSPACE$2" ] && [ -n "$3" ]; then
       cd "$R2_WORKSPACE$2"
       docker-compose run "$3"
+    elif [ -d "$R2_WORKSPACE$2" ]; then
+        cd "$R2_WORKSPACE$2"
+        docker-compose up --build
     else
       docker run $(docker ps -aqf "name=^$2")
     fi
