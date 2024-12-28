@@ -465,15 +465,17 @@ Summarize the following text:$jira_description
     }
 
     "run" {
-        if (Test-Path -Path "$R2_WORKSPACE\$arg1")
-        {
-            Set-Location "$R2_WORKSPACE\$arg1"
-            docker-compose run "$arg2"
+
+        if ($arg2) {
+            Set-Location "$env:R2_WORKSPACE$arg1"
+            docker-compose run $arg2
+        } elseif (Test-Path "$env:R2_WORKSPACE$arg1") {
+            Set-Location "$env:R2_WORKSPACE$arg1"
+            docker-compose up --build
+        } else {
+            docker run $(docker ps -aqf "name=^$arg1")
         }
-        else
-        {
-            docker run $( docker ps -aqf "name=^$arg1" )
-        }
+
     }
 
     "restart" {
