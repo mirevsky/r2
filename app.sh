@@ -463,10 +463,14 @@ case $1 in
     case $1 in
       sum)
         result=$(r2_openai_call "Summarize the following text: $2")
+        result=${result#\"}
+        result=${result%\"}
         echo -e $result
         ;;
       *)
         result=$(r2_openai_call "$2")
+        result=${result#\"}
+        result=${result%\"}
         echo -e $result
         ;;
     esac
