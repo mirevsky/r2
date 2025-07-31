@@ -92,7 +92,7 @@ r2_append_var(){
 
 r2_openai_call(){
   data=$1
-  template='{ "model": "gpt-3.5-turbo", "messages": [{"role": "user", "content": "%s"}], "temperature": 0.7}'
+  template='{ "model": "gpt-4.1", "messages": [{"role": "user", "content": "%s"}], "temperature": 0.7}'
   if [ -n "$data" ];then
     result=$(curl -s "$OPENAI_URL/v1/chat/completions" -H "Content-Type: application/json" -H "Authorization: Bearer $OPENAI_API_KEY" -d "$(printf "$template" "$data")" )
     echo $result | jq ".choices" | jq '.[]' | jq ".message" | jq ".content"
@@ -197,6 +197,54 @@ r2_msg_error(){
 case $1 in
   add)
     git clone "$GIT_SYS_URL$2"
+    ;;
+
+  kube)
+    case $2 in
+      start)
+        case $3 in
+          tunnel)
+            minikube tunnel
+          ;;
+          ingress)
+            minikube addons enable ingress
+            ;;
+          *)
+            minikube start
+            ;;
+        esac
+        ;;
+      list)
+        case $3 in
+          -s | services)
+            r2_msg_info "Listing kube services..."
+            minikube kubectl -- get services
+          ;;
+          -n | namespaces)
+            r2_msg_info "Listing kube services..."
+            minikube kubectl -- get namespaces
+          ;;
+          -p | pods)
+            r2_msg_info "Listing kube services..."
+            minikube kubectl -- get pods -A
+          ;;
+          all)
+            r2_msg_info "Listing kube services..."
+            minikube kubectl -- get services
+            r2_msg_info "Listing kube namespaces..."
+            minikube kubectl -- get namespaces
+            r2_msg_info "Listing kube pods in all namespaces..."
+            minikube kubectl -- get pods --all-namespaces
+            ;;
+        esac
+        ;;
+      ssh)
+        minikube kubectl -- exec --stdin --tty $3 -- /bin/bash
+        ;;
+      *)
+        minikube kubectl -- $2 $3 $4 $5 $6 $7 $8 $9
+        ;;
+    esac
     ;;
 
   release)
@@ -415,17 +463,21 @@ case $1 in
     case $1 in
       sum)
         result=$(r2_openai_call "Summarize the following text: $2")
-        echo $result
+        echo -e $result
         ;;
       *)
         result=$(r2_openai_call "$2")
-        echo $result
+        echo -e $result
         ;;
     esac
     ;;
 
   setup)
     case $2 in
+    minikube)
+      brew install minikube
+      ;;
+
     git)
       confirm=$(r2_read "Do you want to generate ssh key? [y/N]:")
       if [ "$confirm" == "Y" ] || [ "$confirm" = "y" ]; then
@@ -520,6 +572,7 @@ case $1 in
        r2_msg "r2 setup openai"
        r2_msg "r2 setup jira"
        r2_msg "r2 setup jq"
+       r2_msg "r2 setup minikube"
        r2_msg "r2 setup devtools"
        r2_msg "r2 setup social"
        ;;
