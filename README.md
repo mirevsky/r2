@@ -42,6 +42,8 @@ Unlock the ultimate developer toolkit with R2 CLI! Seamlessly integrating Docker
 | r2 d2 'Open AI chat...'                                 |
 | r2 d2 sum <text>                                        |
 +---------------------------------------------------------+
+| r2 kube <command>                                       |
++---------------------------------------------------------+
 | r2 release <project-name> <jira-project-code> <version> |
 +---------------------------------------------------------+
 ```
@@ -56,6 +58,7 @@ source ~/.bashrc
 r2 help
 r2 help apps
 
+r2 setup minikube
 r2 setup git
 r2 setup homebrew
 r2 setup jq
@@ -96,4 +99,5 @@ Make sure you follow the next steps:
 r2 setup jq
 r2 setup jira
 r2 setup openai
+r2 setup minikube
 ```

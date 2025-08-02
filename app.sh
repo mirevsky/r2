@@ -64,6 +64,8 @@ r2_commands_list(){
   echo -e "| r2 d2 'Open AI chat...'                                 |";
   echo -e "| r2 d2 sum <text>                                        |";
   echo -e "+---------------------------------------------------------+";
+  echo -e "| r2 kube <command>                                       |";
+  echo -e "+---------------------------------------------------------+";
   echo -e "| r2 release <project-name> <jira-project-code> <version> |";
   echo -e "+---------------------------------------------------------+";
 }
