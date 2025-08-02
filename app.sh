@@ -465,12 +465,20 @@ case $1 in
         result=$(r2_openai_call "Summarize the following text: $2")
         result=${result#\"}
         result=${result%\"}
+        result=${result//\`\`\`html/\`\`\`html${COLOR_LIGHT_GRAY}}
+        result=${result//\`\`\`javascript/\`\`\`javascript${COLOR_BLUE}}
+        result=${result//\`\`\`bash/\`\`\`bash${COLOR_PURPLE}}
+        result=${result//\`\`\`/${COLOR_NO}\`\`\`}
         echo -e $result
         ;;
       *)
         result=$(r2_openai_call "$2")
         result=${result#\"}
         result=${result%\"}
+        result=${result//\`\`\`html/\`\`\`html${COLOR_LIGHT_GRAY}}
+        result=${result//\`\`\`javascript/\`\`\`javascript${COLOR_BLUE}}
+        result=${result//\`\`\`bash/\`\`\`bash${COLOR_PURPLE}}
+        result=${result//\`\`\`/${COLOR_NO}\`\`\`}
         echo -e $result
         ;;
     esac
