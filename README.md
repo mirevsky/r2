@@ -1,6 +1,6 @@
 ## R2 CLI (Command Line Interface)
 
-Unlock the ultimate developer toolkit with R2 CLI! Seamlessly integrating Docker, JIRA, and GIT, R2 CLI transforms your command line experience into a powerhouse of productivity. Simplify your workflow, streamline project management, and boost your version control efficiency—all in one robust interface. R2 CLI is designed to empower developers like you to achieve more with less hassle. Ready to revolutionize your development process? Try R2 CLI today and elevate your command line capabilities to new heights!
+Unlock the ultimate developer toolkit with R2 CLI! Seamlessly integrating Docker, Kubernetes, JIRA, and GIT, R2 CLI transforms your command line experience into a powerhouse of productivity. Simplify your workflow, streamline project management, and boost your version control efficiency—all in one robust interface. R2 CLI is designed to empower developers like you to achieve more with less hassle. Ready to revolutionize your development process? Try R2 CLI today and elevate your command line capabilities to new heights!
 
 ```text
                        .--:::::::.
