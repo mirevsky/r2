@@ -469,6 +469,7 @@ case $1 in
         result=${result%\"}
         result=${result//\`\`\`python/\`\`\`python${COLOR_DARK_GREY}}
         result=${result//\`\`\`cpp/\`\`\`cpp${COLOR_RED}}
+        result=${result//\`\`\`javascript/\`\`\`javascript${COLOR_BLUE}}
         result=${result//\`\`\`java/\`\`\`java${COLOR_LIGHT_RED}}
         result=${result//\`\`\`csharp/\`\`\`csharp${COLOR_GREEN}}
         result=${result//\`\`\`rust/\`\`\`rust${COLOR_LIGHT_GREEN}}
@@ -479,7 +480,6 @@ case $1 in
         result=${result//\`\`\`ruby/\`\`\`ruby${COLOR_CYAN}}
         result=${result//\`\`\`php/\`\`\`php${COLOR_LIGHT_CYAN}}
         result=${result//\`\`\`html/\`\`\`html${COLOR_LIGHT_GRAY}}
-        result=${result//\`\`\`javascript/\`\`\`javascript${COLOR_BLUE}}
         result=${result//\`\`\`bash/\`\`\`bash${COLOR_PURPLE}}
         result=${result//\`\`\`/${COLOR_NO}\`\`\`}
         echo -e $result
@@ -490,6 +490,7 @@ case $1 in
         result=${result%\"}
         result=${result//\`\`\`python/\`\`\`python${COLOR_DARK_GREY}}
         result=${result//\`\`\`cpp/\`\`\`cpp${COLOR_RED}}
+        result=${result//\`\`\`javascript/\`\`\`javascript${COLOR_BLUE}}
         result=${result//\`\`\`java/\`\`\`java${COLOR_LIGHT_RED}}
         result=${result//\`\`\`csharp/\`\`\`csharp${COLOR_GREEN}}
         result=${result//\`\`\`rust/\`\`\`rust${COLOR_LIGHT_GREEN}}
@@ -500,7 +501,6 @@ case $1 in
         result=${result//\`\`\`ruby/\`\`\`ruby${COLOR_CYAN}}
         result=${result//\`\`\`php/\`\`\`php${COLOR_LIGHT_CYAN}}
         result=${result//\`\`\`html/\`\`\`html${COLOR_LIGHT_GRAY}}
-        result=${result//\`\`\`javascript/\`\`\`javascript${COLOR_BLUE}}
         result=${result//\`\`\`bash/\`\`\`bash${COLOR_PURPLE}}
         result=${result//\`\`\`/${COLOR_NO}\`\`\`}
         echo -e $result
