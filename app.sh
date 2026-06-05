@@ -22,6 +22,7 @@ COLOR_LIGHT_GRAY="\e[0;37m"
 COLOR_WHITE="\e[1;37m"
 COLOR_NO="\e[0m" # No Color
 
+# Renders the R2 CLI logo to the terminal
 r2_logo() {
   echo -e "${COLOR_LIGHT_GRAY}                       .--${COLOR_LIGHT_BLUE}:::::::${COLOR_LIGHT_GRAY}.                ${COLOR_NO}";
   echo -e "${COLOR_LIGHT_GRAY}                     --${COLOR_LIGHT_BLUE}..::::.${COLOR_LIGHT_GRAY}   :-:              ${COLOR_NO}";
@@ -47,6 +48,7 @@ r2_logo() {
   echo -e "${COLOR_LIGHT_GRAY}            +::=::=::+  +:::=::::=:::+:           ${COLOR_NO}";
   echo -e "${COLOR_LIGHT_GRAY}                        =::::::::::::=            ${COLOR_NO}";
 }
+# Displays a list of available R2 CLI commands
 r2_commands_list(){
   echo -e "+---------------------------------------------------------+";
   echo -e "| R2 CLI - Command Line Interface                         |";
@@ -70,6 +72,7 @@ r2_commands_list(){
   echo -e "+---------------------------------------------------------+";
 }
 
+# Reloads the user's shell configuration (zsh or bash)
 r2_reload(){
   if [ -f ~/.zshrc ];then
     source ~/.zshrc
@@ -80,6 +83,8 @@ r2_reload(){
   fi
 }
 
+# Appends an export variable statement to the shell configuration files and reloads them
+# @param $1 The variable assignment string (e.g., "VAR=value")
 r2_append_var(){
   v=$1
   if [ -f ~/.zshrc ];then
@@ -92,6 +97,8 @@ r2_append_var(){
   r2_reload
 }
 
+# Sends a prompt to the OpenAI API and echoes the response content
+# @param $1 The prompt text to send to OpenAI
 r2_openai_call(){
   data=$1
   if [ -n "$data" ];then
@@ -117,6 +124,10 @@ r2_openai_call(){
   fi
 }
 
+# Performs a generic REST API call to Jira
+# @param $1 The HTTP method (GET, POST, PUT, etc.)
+# @param $2 The API endpoint path
+# @param $3 The JSON data payload for the request
 r2_jira_call(){
   type=$1
   url=$2
@@ -125,6 +136,11 @@ r2_jira_call(){
   echo $result
 }
 
+# Creates a new ticket in Jira
+# @param $1 Jira project key
+# @param $2 Issue type (e.g., Story, Bug)
+# @param $3 Summary of the issue
+# @param $4 Description content in Jira Document Format (JSON string)
 r2_jira_create_ticket(){
   project=$1
   issuetype=$2
@@ -152,12 +168,18 @@ r2_jira_create_ticket(){
   echo $result | jq ".key"
 }
 
+# Fetches the description of a specific Jira issue
+# @param $1 Jira issue key (ticket ID)
 r2_jira_get_description(){
   pr=$1
   description=$(r2_jira_call GET "rest/api/2/issue/$pr?fields=description")
   echo $description | jq '.fields' | jq '.description'
 }
 
+# Creates a new release version in Jira
+# @param $1 Jira project key
+# @param $2 Release name (version)
+# @param $3 Release description
 r2_jira_create_release(){
   project=$1
   name=$2
@@ -174,6 +196,9 @@ r2_jira_create_release(){
   r2_jira_call POST "rest/api/3/version" "$(printf "$template" "$description" "$name" "$project" "$(date +"%Y-%m-%d")")"
 }
 
+# Adds a fix version tag to a specific Jira issue
+# @param $1 Jira issue key
+# @param $2 Version name to tag the issue with
 r2_jira_tag_release(){
   ticket=$1
   tag=$2
@@ -188,6 +213,9 @@ r2_jira_tag_release(){
   r2_jira_call PUT "rest/api/2/issue/$ticket" "$(printf "$template" "$tag")"
 }
 
+# Transitions a Jira ticket to a new status
+# @param $1 Jira issue key
+# @param $2 Transition ID
 r2_jira_move_ticket(){
   ticket=$1
   transition=$2
@@ -195,19 +223,34 @@ r2_jira_move_ticket(){
   r2_jira_call POST "rest/api/3/issue/$ticket/transitions" "$(printf "$template" "$transition")"
 }
 
+# Reads user input from the terminal with a prompt
+# @param $1 The prompt message to display
 r2_read(){
   read -r -p "$1" set_read
   echo $set_read
 }
 
+# Reads sensitive user input (password) from the terminal without echoing
+# @param $1 The prompt message to display
+r2_password() {
+  read -r -s -p "$1" password
+  echo "$password"
+}
+
+# Echoes a message to the terminal
+# @param $1 The message to display
 r2_msg(){
   echo -e "$1"
 }
 
+# Echoes an informational message in purple color
+# @param $1 The message to display
 r2_msg_info(){
   echo -e "${COLOR_PURPLE}$1${COLOR_NO}"
 }
 
+# Echoes an error message in red color
+# @param $1 The message to display
 r2_msg_error(){
   echo -e "${COLOR_RED}$1${COLOR_NO}"
 }
@@ -415,7 +458,29 @@ case $1 in
     ;;
 
   run)
-    if [ -d "$R2_WORKSPACE$2" ] && [ -n "$3" ]; then
+
+    if [ "$2" == "argocd" ]; then
+      kind create cluster --name argocd-demo
+      # Create a namespace for ArgoCD resources
+      kubectl create namespace argocd
+      # Deploy ArgoCD using the official manifests
+      kubectl apply -n argocd -f https://raw.githubusercontent.com/argoproj/argo-cd/stable/manifests/install.yaml
+      # Check that ArgoCD pods are running
+      kubectl get pods -n argocd
+      # Forward ArgoCD server port to your local machine
+      kubectl port-forward svc/argocd-server -n argocd 8080:443
+      # Retrieve the initial admin password (stored as a secret)
+      kubectl -n argocd get secret argocd-initial-admin-secret -o jsonpath="{.data.password}" | base64 -d && echo
+
+      confirm=$(r2_read "Do you want to login to ArgoCD thru CLI? [y/N]:")
+      if [ "$confirm" == "Y" ] || [ "$confirm" = "y" ]; then
+        argo_username=$(r2_read "Username:")
+        argo_password=$(r2_password "Password:")
+        # Login to the ArgoCD server locally
+        argocd login localhost:8080 --username $argo_username --password $argo_password --insecure
+      fi
+
+    elif [ -d "$R2_WORKSPACE$2" ] && [ -n "$3" ]; then
       cd "$R2_WORKSPACE$2"
       docker-compose run "$3"
     elif [ -d "$R2_WORKSPACE$2" ]; then
@@ -526,6 +591,9 @@ case $1 in
 
   setup)
     case $2 in
+    argocd)
+      brew install argocd
+      ;;
     minikube)
       brew install minikube
       ;;
