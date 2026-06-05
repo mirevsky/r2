@@ -55,16 +55,21 @@ r2_commands_list(){
   echo -e "+---------------------------------------------------------+";
   echo -e "| r2 add <project-name>                                   |";
   echo -e "| r2 run <project-name>                                   |";
+  echo -e "| r2 run argocd                                           |";
+  echo -e "| r2 restart <service-name>                               |";
+  echo -e "| r2 restart all                                          |";
   echo -e "| r2 start <service-name>                                 |";
   echo -e "| r2 stop <service-name>                                  |";
   echo -e "| r2 stop all                                             |";
-  echo -e "| r2 setup <app-name>  (git | jira | openai)              |";
+  echo -e "| r2 setup <app-name>                                     |";
   echo -e "| r2 delete all                                           |";
   echo -e "| r2 ssh <service-name>                                   |";
+  echo -e "| r2 exec <service-name> <command>                        |";
   echo -e "| r2 list                                                 |";
   echo -e "| r2 update                                               |";
   echo -e "| r2 d2 'Open AI chat...'                                 |";
   echo -e "| r2 d2 sum <text>                                        |";
+  echo -e "| r2 help apps                                            |";
   echo -e "+---------------------------------------------------------+";
   echo -e "| r2 kube <command>                                       |";
   echo -e "+---------------------------------------------------------+";
@@ -693,6 +698,7 @@ case $1 in
        r2_msg "r2 setup jira"
        r2_msg "r2 setup jq"
        r2_msg "r2 setup minikube"
+       r2_msg "r2 setup argocd"
        r2_msg "r2 setup devtools"
        r2_msg "r2 setup social"
        ;;
