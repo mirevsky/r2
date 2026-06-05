@@ -94,10 +94,26 @@ r2_append_var(){
 
 r2_openai_call(){
   data=$1
-  template='{ "model": "gpt-4.1", "messages": [{"role": "user", "content": "%s"}], "temperature": 0.7}'
   if [ -n "$data" ];then
-    result=$(curl -s "$OPENAI_URL/v1/chat/completions" -H "Content-Type: application/json" -H "Authorization: Bearer $OPENAI_API_KEY" -d "$(printf "$template" "$data")" )
-    echo $result | jq ".choices" | jq '.[]' | jq ".message" | jq ".content"
+    payload=$(jq -n \
+      --arg model "gpt-4.1" \
+      --arg content "$data" \
+      '{
+        model: $model,
+        messages: [
+          {
+            role: "user",
+            content: $content
+          }
+        ],
+        temperature: 0.7
+      }')
+
+    result=$(curl -s "$OPENAI_URL/v1/chat/completions" \
+      -H "Content-Type: application/json" \
+      -H "Authorization: Bearer $OPENAI_API_KEY" \
+      -d "$payload")
+    echo "$result" | jq -r '.choices[].message.content'
   fi
 }
 

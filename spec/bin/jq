@@ -1,0 +1,2 @@
+#!/bin/sh
+if [ "$1" = ".choices" ]; then echo '[{"message": {"content": "\"summary results\""}}]'; elif [ "$1" = ".message" ]; then echo '{"content": "\"summary results\""}'; else echo "\"summary results\""; fi
