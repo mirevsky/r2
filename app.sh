@@ -245,7 +245,7 @@ r2_password() {
 # Echoes a message to the terminal
 # @param $1 The message to display
 r2_msg(){
-  echo -e "$1"
+  echo "$1"
 }
 
 # Echoes an informational message in purple color
@@ -573,7 +573,7 @@ case $1 in
     if [ -d $R2_WORKSPACE"r2" ]; then
       cd $R2_WORKSPACE"r2"
       git pull
-      cp app.sh $R2_WORKSPACE../.r2.sh
+      cp app.sh $R2_WORKSPACE"r2/app.sh"
       r2_reload
     fi
     ;;
