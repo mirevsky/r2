@@ -8,30 +8,49 @@ param (
     [string]$arg6
 )
 
+# Color definitions
+$COLOR_BLACK = "`e[0;30m"
+$COLOR_DARK_GREY = "`e[1;30m"
+$COLOR_RED = "`e[0;31m"
+$COLOR_LIGHT_RED = "`e[1;31m"
+$COLOR_GREEN = "`e[0;32m"
+$COLOR_LIGHT_GREEN = "`e[1;32m"
+$COLOR_BROWN_ORANGE = "`e[0;33m"
+$COLOR_YELLOW = "`e[1;33m"
+$COLOR_BLUE = "`e[0;34m"
+$COLOR_LIGHT_BLUE = "`e[1;34m"
+$COLOR_PURPLE = "`e[0;35m"
+$COLOR_LIGHT_PURPLE = "`e[1;35m"
+$COLOR_CYAN = "`e[0;36m"
+$COLOR_LIGHT_CYAN = "`e[1;36m"
+$COLOR_LIGHT_GRAY = "`e[0;37m"
+$COLOR_WHITE = "`e[1;37m"
+$COLOR_NO = "`e[0m"
+
 function r2_logo
 {
-    Write-Host "                       .--:::::::.                "
-    Write-Host "                     --..::::.   :-:              "
-    Write-Host "                    =.       .::::.:=             "
-    Write-Host "                   =:::=-:-       .:-=            "
-    Write-Host "                  =-::-= .+::=:::.   =.           "
-    Write-Host "                 :-    .:=-:+.   .*  =            "
-    Write-Host "                .=     --::-+=:::=::==            "
-    Write-Host "                +     + .-:: =.  .:-+             "
-    Write-Host "               =.     + :-:=  =    =              "
-    Write-Host "              -:     .*.      =.  -.              "
-    Write-Host "             :-      +.=      -: :-               "
-    Write-Host "            .=      =. :-::::-= .=                "
-    Write-Host "            +  :--:=-   :*.   + +                 "
-    Write-Host "           :=::+   =-:::=.=   :+.                 "
-    Write-Host "           .=  .::=+.     =.   +.                 "
-    Write-Host "            .::::.  .::::.==::::--                "
-    Write-Host "                =:::::.  .+      +                "
-    Write-Host "               .+::.:-.:::==:::::=-               "
-    Write-Host "               -: .=-      +......+               "
-    Write-Host "             --::::=:     =:.......=.             "
-    Write-Host "            +=::::::+=  .=  :-::--  -:            "
-    Write-Host "            +::=::=::+  +:::=::::=:::+:           "
+    Write-Host "${COLOR_LIGHT_GRAY}                       .--${COLOR_LIGHT_BLUE}:::::::${COLOR_LIGHT_GRAY}.                ${COLOR_NO}"
+    Write-Host "${COLOR_LIGHT_GRAY}                     --${COLOR_LIGHT_BLUE}..::::.${COLOR_LIGHT_GRAY}   :-:              ${COLOR_NO}"
+    Write-Host "${COLOR_LIGHT_GRAY}                    =.       ${COLOR_LIGHT_BLUE}.::::.:${COLOR_LIGHT_GRAY}=             ${COLOR_NO}"
+    Write-Host "${COLOR_LIGHT_GRAY}                   =${COLOR_LIGHT_BLUE}:::=-:-       ${COLOR_LIGHT_GRAY}.:-=            ${COLOR_NO}"
+    Write-Host "${COLOR_LIGHT_GRAY}                  =-::-= .${COLOR_LIGHT_BLUE}+::=:::.   ${COLOR_LIGHT_GRAY}=.           ${COLOR_NO}"
+    Write-Host "${COLOR_LIGHT_GRAY}                 :-    .:=-:+.   .*  =            ${COLOR_NO}"
+    Write-Host "${COLOR_LIGHT_GRAY}                .=     --::-+=:::${COLOR_LIGHT_BLUE}=::${COLOR_LIGHT_GRAY}==            ${COLOR_NO}"
+    Write-Host "${COLOR_LIGHT_GRAY}                +     + .-:: =.  .:-+             ${COLOR_NO}"
+    Write-Host "${COLOR_LIGHT_GRAY}               =.     + :-:=  =    =              ${COLOR_NO}"
+    Write-Host "${COLOR_LIGHT_GRAY}              -:     .*.      =.  -.              ${COLOR_NO}"
+    Write-Host "${COLOR_LIGHT_GRAY}             :-      +.=      -: :-               ${COLOR_NO}"
+    Write-Host "${COLOR_LIGHT_GRAY}            .=      =. :-::::-= .=                ${COLOR_NO}"
+    Write-Host "${COLOR_LIGHT_GRAY}            +  ${COLOR_LIGHT_BLUE}:--:${COLOR_LIGHT_GRAY}=-   :*.   + +                 ${COLOR_NO}"
+    Write-Host "${COLOR_LIGHT_GRAY}           :=::+   =-${COLOR_LIGHT_BLUE}:::${COLOR_LIGHT_GRAY}=.=   :+.                 ${COLOR_NO}"
+    Write-Host "${COLOR_LIGHT_GRAY}           .=  .::=+.     =.   +.                 ${COLOR_NO}"
+    Write-Host "${COLOR_LIGHT_GRAY}            .::::.  .::::.==::::--                ${COLOR_NO}"
+    Write-Host "${COLOR_LIGHT_GRAY}                =:::::.  .+      +                ${COLOR_NO}"
+    Write-Host "${COLOR_LIGHT_GRAY}               .+::.:-.:::==:::::=-               ${COLOR_NO}"
+    Write-Host "${COLOR_LIGHT_GRAY}               -: .=-      +......+               ${COLOR_NO}"
+    Write-Host "${COLOR_LIGHT_GRAY}             --::::=:     =:.......=.             ${COLOR_NO}"
+    Write-Host "${COLOR_LIGHT_GRAY}            +=::::::+=  .=  :-::--  -:            ${COLOR_NO}"
+    Write-Host "${COLOR_LIGHT_GRAY}            +::=::=::+  +:::=::::=:::+:           ${COLOR_NO}"
     Write-Host "                        =::::::::::::=            "
 }
 
@@ -42,19 +61,33 @@ function r2_commands_list
     Write-Host "+---------------------------------------------------------+"
     Write-Host "| r2 add <project-name>                                   |"
     Write-Host "| r2 run <project-name>                                   |"
+    Write-Host "| r2 run argocd                                           |"
+    Write-Host "| r2 restart <service-name>                               |"
+    Write-Host "| r2 restart all                                          |"
     Write-Host "| r2 start <service-name>                                 |"
     Write-Host "| r2 stop <service-name>                                  |"
     Write-Host "| r2 stop all                                             |"
-    Write-Host "| r2 setup <app-name>  (git | jira | openai)              |"
+    Write-Host "| r2 setup <app-name>                                     |"
     Write-Host "| r2 delete all                                           |"
     Write-Host "| r2 ssh <service-name>                                   |"
+    Write-Host "| r2 exec <service-name> <command>                        |"
     Write-Host "| r2 list                                                 |"
     Write-Host "| r2 update                                               |"
     Write-Host "| r2 d2 'Open AI chat...'                                 |"
     Write-Host "| r2 d2 sum <text>                                        |"
+    Write-Host "| r2 help apps                                            |"
+    Write-Host "+---------------------------------------------------------+"
+    Write-Host "| r2 kube <command>                                       |"
     Write-Host "+---------------------------------------------------------+"
     Write-Host "| r2 release <project-name> <jira-project-code> <version> |"
     Write-Host "+---------------------------------------------------------+"
+}
+
+function r2_reload
+{
+    if (Test-Path $PROFILE) {
+        . $PROFILE
+    }
 }
 
 function r2_append_var
@@ -63,7 +96,8 @@ function r2_append_var
         [string]$v
     )
     $Env:PATH += ";" + $v
-    [Environment]::SetEnvironmentVariable('PATH', $Env:PATH, [System.EnvironmentVariableTarget]::Machine)
+    [Environment]::SetEnvironmentVariable('PATH', $Env:PATH, [System.EnvironmentVariableTarget]::User)
+    r2_reload
 }
 
 function r2_openai_call
@@ -247,6 +281,21 @@ function r2_read
     return $set_read
 }
 
+function r2_password
+{
+    param (
+        [string]$prompt
+    )
+    $password = Read-Host -Prompt $prompt -AsSecureString
+    $passwordPtr = [Runtime.InteropServices.Marshal]::SecureStringToBSTR($password)
+    try {
+        $passwordPlain = [Runtime.InteropServices.Marshal]::PtrToStringBSTR($passwordPtr)
+    } finally {
+        [Runtime.InteropServices.Marshal]::ZeroFreeBSTR($passwordPtr)
+    }
+    return $passwordPlain
+}
+
 function r2_msg
 {
     param (
@@ -260,7 +309,7 @@ function r2_msg_info
     param (
         [string]$message
     )
-    Write-Host "$message"
+    Write-Host "${COLOR_PURPLE}$message${COLOR_NO}"
 }
 
 function r2_msg_error
@@ -268,13 +317,74 @@ function r2_msg_error
     param (
         [string]$message
     )
-    Write-Host "$message"
+    Write-Host "${COLOR_RED}$message${COLOR_NO}"
 }
 
 switch ($command)
 {
     "add" {
         git clone "$GIT_SYS_URL$arg1"
+    }
+
+    "kube" {
+        switch ($arg1) {
+            "start" {
+                switch ($arg2) {
+                    "tunnel" {
+                        minikube tunnel
+                    }
+                    "ingress" {
+                        minikube addons enable ingress
+                    }
+                    "argo" {
+                        kubectl create namespace argocd
+                        kubectl apply -n argocd --server-side --force-conflicts -f https://raw.githubusercontent.com/argoproj/argo-cd/stable/manifests/install.yaml
+                        kubectl wait --for=condition=Ready pods --all -n argocd --timeout=300s
+                        kubectl get pods -n argocd
+                        Start-Process kubectl -ArgumentList "port-forward svc/argocd-server -n argocd 8080:443" -NoNewWindow
+                        $pass = kubectl get secret argocd-initial-admin-secret -n argocd -o jsonpath='{.data.password}' | ForEach-Object { [System.Text.Encoding]::UTF8.GetString([System.Convert]::FromBase64String($_)) }
+                        argocd login localhost:8080 --insecure --username admin --password "$pass"
+                        argocd cluster list
+                    }
+                    Default {
+                        minikube start
+                    }
+                }
+            }
+            "list" {
+                switch ($arg2) {
+                    { $_ -eq "-s" -or $_ -eq "services" } {
+                        r2_msg_info "Listing kube services..."
+                        minikube kubectl -- get services
+                    }
+                    { $_ -eq "-n" -or $_ -eq "namespaces" } {
+                        r2_msg_info "Listing kube services..."
+                        minikube kubectl -- get namespaces
+                    }
+                    { $_ -eq "-p" -or $_ -eq "pods" } {
+                        r2_msg_info "Listing kube services..."
+                        minikube kubectl -- get pods -A
+                    }
+                    "all" {
+                        r2_msg_info "Listing kube services..."
+                        minikube kubectl -- get services
+                        r2_msg_info "Listing kube namespaces..."
+                        minikube kubectl -- get namespaces
+                        r2_msg_info "Listing kube pods in all namespaces..."
+                        minikube kubectl -- get pods --all-namespaces
+                    }
+                }
+            }
+            "ssh" {
+                minikube kubectl -- exec --stdin --tty $arg2 -- /bin/bash
+            }
+            Default {
+                # minikube kubectl -- $arg1 $arg2 $arg3 $arg4 $arg5 $arg6
+                # Since we don't have direct access to all args easily in a switch like this, we'll try to reconstruct
+                $kubeArgs = @($arg1, $arg2, $arg3, $arg4, $arg5, $arg6) | Where-Object { $_ }
+                minikube kubectl -- $kubeArgs
+            }
+        }
     }
 
     "release" {
@@ -461,12 +571,34 @@ Summarize the following text:$jira_description
                     r2_msg_info "Run r2 run <project-name>"
                 }
             }
+            default {
+                if (Test-Path -Path "$R2_WORKSPACE\$arg1") {
+                    Set-Location "$R2_WORKSPACE\$arg1"
+                    docker-compose down
+                } else {
+                    docker rm $(docker ps -aqf "name=^$arg1")
+                }
+            }
         }
     }
 
     "run" {
 
-        if ($arg2) {
+        if ($arg1 -eq "argocd") {
+            kind create cluster --name argocd-demo
+            kubectl create namespace argocd
+            kubectl apply -n argocd -f https://raw.githubusercontent.com/argoproj/argo-cd/stable/manifests/install.yaml
+            kubectl get pods -n argocd
+            kubectl port-forward svc/argocd-server -n argocd 8080:443
+            kubectl -n argocd get secret argocd-initial-admin-secret -o jsonpath="{.data.password}" | ForEach-Object { [System.Text.Encoding]::UTF8.GetString([System.Convert]::FromBase64String($_)) }
+
+            $confirm = r2_read "Do you want to login to ArgoCD thru CLI? [y/N]:"
+            if ($confirm -eq "Y" -or $confirm -eq "y") {
+                $argo_username = r2_read "Username:"
+                $argo_password = r2_password "Password:"
+                argocd login localhost:8080 --username $argo_username --password $argo_password --insecure
+            }
+        } elseif ($arg2) {
             Set-Location "$env:R2_WORKSPACE$arg1"
             docker-compose run $arg2
         } elseif (Test-Path "$env:R2_WORKSPACE$arg1") {
@@ -544,11 +676,43 @@ Summarize the following text:$jira_description
         {
             "sum" {
                 $result = r2_openai_call "Summarize the following text: $arg2"
-                Write-Host $result
+                $result = $result -replace '^"', '' -replace '"$', ''
+                $result = $result -replace '```python', "```python$COLOR_DARK_GREY"
+                $result = $result -replace '```cpp', "```cpp$COLOR_RED"
+                $result = $result -replace '```javascript', "```javascript$COLOR_BLUE"
+                $result = $result -replace '```java', "```java$COLOR_LIGHT_RED"
+                $result = $result -replace '```csharp', "```csharp$COLOR_GREEN"
+                $result = $result -replace '```rust', "```rust$COLOR_LIGHT_GREEN"
+                $result = $result -replace '```go', "```go$COLOR_BROWN_ORANGE"
+                $result = $result -replace '```swift', "```swift$COLOR_YELLOW"
+                $result = $result -replace '```typescript', "```typescript$COLOR_LIGHT_BLUE"
+                $result = $result -replace '```kotlin', "```kotlin$COLOR_LIGHT_PURPLE"
+                $result = $result -replace '```ruby', "```ruby$COLOR_CYAN"
+                $result = $result -replace '```php', "```php$COLOR_LIGHT_CYAN"
+                $result = $result -replace '```html', "```html$COLOR_LIGHT_GRAY"
+                $result = $result -replace '```bash', "```bash$COLOR_PURPLE"
+                $result = $result -replace '```', "$COLOR_NO```"
+                Write-Host "$result$COLOR_NO"
             }
             default {
                 $result = r2_openai_call "$arg1"
-                Write-Host $result
+                $result = $result -replace '^"', '' -replace '"$', ''
+                $result = $result -replace '```python', "```python$COLOR_DARK_GREY"
+                $result = $result -replace '```cpp', "```cpp$COLOR_RED"
+                $result = $result -replace '```javascript', "```javascript$COLOR_BLUE"
+                $result = $result -replace '```java', "```java$COLOR_LIGHT_RED"
+                $result = $result -replace '```csharp', "```csharp$COLOR_GREEN"
+                $result = $result -replace '```rust', "```rust$COLOR_LIGHT_GREEN"
+                $result = $result -replace '```go', "```go$COLOR_BROWN_ORANGE"
+                $result = $result -replace '```swift', "```swift$COLOR_YELLOW"
+                $result = $result -replace '```typescript', "```typescript$COLOR_LIGHT_BLUE"
+                $result = $result -replace '```kotlin', "```kotlin$COLOR_LIGHT_PURPLE"
+                $result = $result -replace '```ruby', "```ruby$COLOR_CYAN"
+                $result = $result -replace '```php', "```php$COLOR_LIGHT_CYAN"
+                $result = $result -replace '```html', "```html$COLOR_LIGHT_GRAY"
+                $result = $result -replace '```bash', "```bash$COLOR_PURPLE"
+                $result = $result -replace '```', "$COLOR_NO```"
+                Write-Host "$result$COLOR_NO"
             }
         }
     }
@@ -581,6 +745,12 @@ Summarize the following text:$jira_description
                 r2_append_var "JIRA_SYS_URL=$JIRA_SYS_URL"
                 r2_append_var "JIRA_SYS_EMAIL=$JIRA_SYS_EMAIL"
                 r2_append_var "JIRA_API_KEY=$JIRA_API_KEY"
+
+                r2_msg_info "Chocolatey is needed to install jq..."
+                $confirm = r2_read "Have you installed chocolatey? [y/N]:"
+                if ($confirm -eq "Y" -or $confirm -eq "y") {
+                    choco install jq
+                }
             }
 
             "openai" {
@@ -622,6 +792,14 @@ Summarize the following text:$jira_description
             "jq" {
                 choco install jq
             }
+
+            "argocd" {
+                choco install argocd-cli
+            }
+
+            "minikube" {
+                choco install minikube
+            }
         }
     }
 
@@ -637,6 +815,8 @@ Summarize the following text:$jira_description
                 r2_msg "r2 setup openai"
                 r2_msg "r2 setup jira"
                 r2_msg "r2 setup jq"
+                r2_msg "r2 setup minikube"
+                r2_msg "r2 setup argocd"
                 r2_msg "r2 setup devtools"
                 r2_msg "r2 setup social"
             }
