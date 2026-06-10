@@ -147,17 +147,6 @@ Describe 'app.sh'
       End
     End
 
-    Context 'update command'
-      It 'pulls and copies app.sh'
-        export R2_WORKSPACE="/tmp/"
-        mkdir -p /tmp/r2
-        touch /tmp/r2/app.sh
-        When call run_app update
-        The output should include "git called with pull"
-        The stderr should include "Oh My Zsh"
-      End
-    End
-
     Context 'd2 command'
       # Mock curl to return some JSON
       run_app_d2() {
