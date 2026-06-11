@@ -275,7 +275,7 @@ case $1 in
           ingress)
             minikube addons enable ingress
             ;;
-          argo)
+          argocd)
             # Create the argocd namespace
             kubectl create namespace argocd
 
@@ -290,7 +290,7 @@ case $1 in
             kubectl get pods -n argocd
 
             # Port-forward the ArgoCD server to localhost
-            kubectl port-forward svc/argocd-server -n argocd 8080:443 &
+            kubectl port-forward svc/argocd-server -n argocd 9000:443 &
 
             # Now access ArgoCD at https://localhost:8080
             # Your browser will show a certificate warning - this is expected
@@ -298,8 +298,10 @@ case $1 in
             pass=$(kubectl get secret argocd-initial-admin-secret -n argocd \
               -o jsonpath='{.data.password}' | base64 -d && echo)
 
+            echo "Default password:$pass"
+
             # Login via CLI (accept the self-signed cert with --insecure)
-            argocd login localhost:8080 --insecure --username admin --password "$pass"
+            argocd login localhost:9000 --insecure --username admin --password "$pass"
 
             # Verify the connection
             argocd cluster list
