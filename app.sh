@@ -311,6 +311,9 @@ case $1 in
             ;;
         esac
         ;;
+      stop)
+        minikube stop
+        ;;
       list)
         case $3 in
           -s | services)
@@ -494,29 +497,7 @@ case $1 in
     ;;
 
   run)
-
-    if [ "$2" == "argocd" ]; then
-      kind create cluster --name argocd-demo
-      # Create a namespace for ArgoCD resources
-      kubectl create namespace argocd
-      # Deploy ArgoCD using the official manifests
-      kubectl apply -n argocd -f https://raw.githubusercontent.com/argoproj/argo-cd/stable/manifests/install.yaml
-      # Check that ArgoCD pods are running
-      kubectl get pods -n argocd
-      # Forward ArgoCD server port to your local machine
-      kubectl port-forward svc/argocd-server -n argocd 8080:443
-      # Retrieve the initial admin password (stored as a secret)
-      kubectl -n argocd get secret argocd-initial-admin-secret -o jsonpath="{.data.password}" | base64 -d && echo
-
-      confirm=$(r2_read "Do you want to login to ArgoCD thru CLI? [y/N]:")
-      if [ "$confirm" == "Y" ] || [ "$confirm" = "y" ]; then
-        argo_username=$(r2_read "Username:")
-        argo_password=$(r2_password "Password:")
-        # Login to the ArgoCD server locally
-        argocd login localhost:8080 --username $argo_username --password $argo_password --insecure
-      fi
-
-    elif [ -d "$R2_WORKSPACE$2" ] && [ -n "$3" ]; then
+    if [ -d "$R2_WORKSPACE$2" ] && [ -n "$3" ]; then
       cd "$R2_WORKSPACE$2"
       docker-compose run "$3"
     elif [ -d "$R2_WORKSPACE$2" ]; then
